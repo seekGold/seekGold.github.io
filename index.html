@@ -7,13 +7,15 @@
 <style>
   :root {
     color-scheme: light;
-    --bg: #f5f7fb;
+    --bg: #f3f6fb;
     --card: #ffffff;
+    --panel: #fbfcfe;
     --text: #1f2937;
     --muted: #6b7280;
-    --line: #dbe2ea;
+    --line: #d7dfeb;
     --primary: #2563eb;
-    --primary-soft: #e8f0ff;
+    --primary-soft: #eaf1ff;
+    --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   }
 
   * {
@@ -27,133 +29,263 @@
     color: var(--text);
   }
 
-  .wrap {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 24px 16px 40px;
-  }
-
-  h1 {
-    margin: 0 0 8px;
-    font-size: 28px;
-  }
-
-  .desc {
-    margin: 0 0 18px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-
-  .tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  }
-
-  .tab {
-    border: 1px solid var(--line);
-    background: #fff;
-    color: var(--text);
-    padding: 8px 14px;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-
-  .tab.active {
-    border-color: var(--primary);
-    background: var(--primary-soft);
-    color: var(--primary);
-    font-weight: 600;
-  }
-
-  .panel {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
+  .app {
+    display: grid;
+    grid-template-columns: 320px minmax(0, 1fr);
+    min-height: 100vh;
+    gap: 16px;
     padding: 16px;
   }
 
-  .panel-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
+  .sidebar,
+  .main {
+    min-height: calc(100vh - 32px);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--card);
+    box-shadow: var(--shadow);
   }
 
-  .panel-title {
+  .sidebar {
+    padding: 18px 14px;
+    overflow: auto;
+  }
+
+  .brand {
+    padding: 4px 6px 14px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 14px;
+  }
+
+  .brand h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+  }
+
+  .brand p {
     margin: 0;
-    font-size: 18px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
   }
 
-  .status {
+  .tree {
+    display: grid;
+    gap: 12px;
+  }
+
+  .folder {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+    padding: 10px;
+  }
+
+  .folder-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 2px 4px 10px;
+  }
+
+  .folder-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .folder-count {
     font-size: 13px;
     color: var(--muted);
   }
 
-  .list {
+  .file-list {
     display: grid;
-    gap: 10px;
+    gap: 8px;
   }
 
-  .item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
+  .file-btn {
+    width: 100%;
     border: 1px solid var(--line);
     border-radius: 12px;
-    text-decoration: none;
-    color: inherit;
     background: #fff;
+    text-align: left;
+    padding: 12px 12px;
+    cursor: pointer;
+    color: var(--text);
+    transition: 0.2s ease;
   }
 
-  .item:hover {
+  .file-btn:hover {
     border-color: var(--primary);
-    background: #fafcff;
+    background: var(--primary-soft);
   }
 
-  .item-name {
-    font-size: 15px;
+  .file-btn.active {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
+  }
+
+  .file-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
     word-break: break-all;
   }
 
-  .item-tag {
-    flex: 0 0 auto;
-    color: var(--primary);
-    font-size: 13px;
+  .file-path {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--muted);
+    word-break: break-all;
   }
 
-  .empty,
-  .error,
-  .loading {
-    padding: 18px 14px;
+  .folder-empty,
+  .tree-status {
+    padding: 12px;
     border: 1px dashed var(--line);
     border-radius: 12px;
     color: var(--muted);
-    font-size: 14px;
+    font-size: 13px;
     background: #fff;
+  }
+
+  .main {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+  }
+
+  .preview-meta {
+    min-width: 0;
+  }
+
+  .preview-title {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 700;
+    word-break: break-all;
+  }
+
+  .preview-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+    word-break: break-all;
+  }
+
+  .preview-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 110px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .preview-body {
+    position: relative;
+    background: #eef3fb;
+  }
+
+  .preview-frame {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #fff;
+  }
+
+  .preview-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 24px;
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  .preview-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(243, 246, 251, 0.8);
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  @media (max-width: 960px) {
+    .app {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar,
+    .main {
+      min-height: auto;
+    }
+
+    .main {
+      height: 78vh;
+    }
+
+    .preview-head {
+      align-items: flex-start;
+      flex-direction: column;
+    }
   }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>页面导航</h1>
-  <p class="desc">点击目录后展示该目录下全部 HTML 文件，支持打开 `us_stock` 和 `cn_etf`</p>
-
-  <div class="tabs" id="tabs"></div>
-
-  <div class="panel">
-    <div class="panel-head">
-      <h2 class="panel-title" id="panelTitle">加载中</h2>
-      <div class="status" id="panelStatus"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>页面导航</h1>
+      <p>左侧显示目录与文件列表，点击后在右侧直接预览 HTML 页面内容</p>
     </div>
-    <div id="content" class="loading">正在读取目录文件...</div>
-  </div>
+    <div class="tree" id="tree">
+      <div class="tree-status">正在读取目录文件...</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="preview-head">
+      <div class="preview-meta">
+        <h2 class="preview-title" id="previewTitle">请选择左侧文件</h2>
+        <p class="preview-subtitle" id="previewSubtitle">右侧会显示对应页面内容</p>
+      </div>
+      <a class="preview-link hidden" id="previewLink" href="#" target="_blank" rel="noopener noreferrer">新窗口打开</a>
+    </div>
+    <div class="preview-body" id="previewBody">
+      <div class="preview-empty" id="previewEmpty">当前还没有选中文件</div>
+      <iframe class="preview-frame hidden" id="previewFrame" title="页面预览"></iframe>
+      <div class="preview-loading hidden" id="previewLoading">页面加载中...</div>
+    </div>
+  </main>
 </div>
 
 <script>
@@ -164,13 +296,19 @@
     { key: "cn_etf", label: "cn_etf" }
   ];
 
-  const tabsEl = document.getElementById("tabs");
-  const panelTitleEl = document.getElementById("panelTitle");
-  const panelStatusEl = document.getElementById("panelStatus");
-  const contentEl = document.getElementById("content");
+  const treeEl = document.getElementById("tree");
+  const previewTitleEl = document.getElementById("previewTitle");
+  const previewSubtitleEl = document.getElementById("previewSubtitle");
+  const previewLinkEl = document.getElementById("previewLink");
+  const previewFrameEl = document.getElementById("previewFrame");
+  const previewEmptyEl = document.getElementById("previewEmpty");
+  const previewLoadingEl = document.getElementById("previewLoading");
 
-  let activeFolder = folders[0].key;
-  const cache = {};
+  const state = {
+    filesByFolder: {},
+    activePath: "",
+    activeName: ""
+  };
 
   function escapeHtml(text) {
     return text.replace(/[&<>"']/g, function(char) {
@@ -185,36 +323,16 @@
     });
   }
 
-  function renderTabs() {
-    tabsEl.innerHTML = folders.map(function(folder) {
-      const activeClass = folder.key === activeFolder ? "tab active" : "tab";
-      return '<button class="' + activeClass + '" data-folder="' + folder.key + '">' + folder.label + "</button>";
-    }).join("");
-
-    tabsEl.querySelectorAll("button").forEach(function(button) {
-      button.addEventListener("click", function() {
-        const nextFolder = button.getAttribute("data-folder");
-        if (nextFolder === activeFolder) {
-          return;
-        }
-        activeFolder = nextFolder;
-        renderTabs();
-        renderFolder();
-      });
-    });
+  function getFileUrl(path) {
+    return "./" + encodeURI(path);
   }
 
   async function loadFolder(folder) {
-    if (cache[folder]) {
-      return cache[folder];
-    }
-
     const url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/contents/" + encodeURIComponent(folder);
     const response = await fetch(url);
 
     if (response.status === 404) {
-      cache[folder] = [];
-      return cache[folder];
+      return [];
     }
 
     if (!response.ok) {
@@ -222,7 +340,7 @@
     }
 
     const data = await response.json();
-    const htmlFiles = data
+    return data
       .filter(function(item) {
         return item.type === "file" && /\.html?$/i.test(item.name);
       })
@@ -235,46 +353,135 @@
           path: folder + "/" + item.name
         };
       });
-
-    cache[folder] = htmlFiles;
-    return htmlFiles;
   }
 
-  async function renderFolder() {
-    panelTitleEl.textContent = activeFolder;
-    panelStatusEl.textContent = "读取中";
-    contentEl.className = "loading";
-    contentEl.textContent = "正在读取目录文件...";
+  function renderTree() {
+    const hasAnyFolder = folders.length > 0;
+    if (!hasAnyFolder) {
+      treeEl.innerHTML = '<div class="tree-status">没有可展示的目录</div>';
+      return;
+    }
 
-    try {
-      const files = await loadFolder(activeFolder);
+    treeEl.innerHTML = folders.map(function(folder) {
+      const files = state.filesByFolder[folder.key] || [];
+      const filesHtml = files.length
+        ? files.map(function(file) {
+            const activeClass = file.path === state.activePath ? "file-btn active" : "file-btn";
+            return [
+              '<button class="' + activeClass + '" data-path="' + escapeHtml(file.path) + '" data-name="' + escapeHtml(file.name) + '">',
+              '<span class="file-name">' + escapeHtml(file.name) + '</span>',
+              '<span class="file-path">' + escapeHtml(file.path) + '</span>',
+              '</button>'
+            ].join("");
+          }).join("")
+        : '<div class="folder-empty">当前目录没有 HTML 文件</div>';
 
-      panelStatusEl.textContent = "共 " + files.length + " 个页面";
+      return [
+        '<section class="folder">',
+        '<div class="folder-head">',
+        '<h3 class="folder-name">' + escapeHtml(folder.label) + '</h3>',
+        '<span class="folder-count">' + files.length + ' 个文件</span>',
+        '</div>',
+        '<div class="file-list">' + filesHtml + '</div>',
+        '</section>'
+      ].join("");
+    }).join("");
 
-      if (files.length === 0) {
-        contentEl.className = "empty";
-        contentEl.textContent = "当前目录没有可打开的 HTML 文件";
-        return;
+    treeEl.querySelectorAll(".file-btn").forEach(function(button) {
+      button.addEventListener("click", function() {
+        const path = button.getAttribute("data-path");
+        const name = button.getAttribute("data-name");
+        selectFile(path, name);
+      });
+    });
+  }
+
+  function renderPreview() {
+    if (!state.activePath) {
+      previewTitleEl.textContent = "请选择左侧文件";
+      previewSubtitleEl.textContent = "右侧会显示对应页面内容";
+      previewLinkEl.classList.add("hidden");
+      previewFrameEl.classList.add("hidden");
+      previewEmptyEl.classList.remove("hidden");
+      previewLoadingEl.classList.add("hidden");
+      previewFrameEl.removeAttribute("src");
+      return;
+    }
+
+    previewTitleEl.textContent = state.activeName;
+    previewSubtitleEl.textContent = state.activePath;
+    previewLinkEl.href = getFileUrl(state.activePath);
+    previewLinkEl.classList.remove("hidden");
+    previewEmptyEl.classList.add("hidden");
+    previewFrameEl.classList.remove("hidden");
+  }
+
+  function selectFile(path, name) {
+    state.activePath = path;
+    state.activeName = name;
+    renderTree();
+    renderPreview();
+    previewLoadingEl.classList.remove("hidden");
+    previewFrameEl.src = getFileUrl(path);
+    location.hash = encodeURIComponent(path);
+  }
+
+  function getDefaultFile() {
+    for (let index = 0; index < folders.length; index += 1) {
+      const folderKey = folders[index].key;
+      const files = state.filesByFolder[folderKey] || [];
+      if (files.length > 0) {
+        return files[0];
       }
+    }
+    return null;
+  }
 
-      contentEl.className = "list";
-      contentEl.innerHTML = files.map(function(file) {
-        return [
-          '<a class="item" href="./' + encodeURI(file.path) + '" target="_blank" rel="noopener noreferrer">',
-          '<span class="item-name">' + escapeHtml(file.name) + "</span>",
-          '<span class="item-tag">打开</span>',
-          "</a>"
-        ].join("");
-      }).join("");
+  function findFileByPath(path) {
+    for (let index = 0; index < folders.length; index += 1) {
+      const folderKey = folders[index].key;
+      const files = state.filesByFolder[folderKey] || [];
+      const match = files.find(function(file) {
+        return file.path === path;
+      });
+      if (match) {
+        return match;
+      }
+    }
+    return null;
+  }
+
+  async function init() {
+    try {
+      const results = await Promise.all(folders.map(function(folder) {
+        return loadFolder(folder.key);
+      }));
+
+      folders.forEach(function(folder, index) {
+        state.filesByFolder[folder.key] = results[index];
+      });
+
+      renderTree();
+
+      const hashPath = location.hash ? decodeURIComponent(location.hash.slice(1)) : "";
+      const initialFile = findFileByPath(hashPath) || getDefaultFile();
+
+      if (initialFile) {
+        selectFile(initialFile.path, initialFile.name);
+      } else {
+        renderPreview();
+      }
     } catch (error) {
-      panelStatusEl.textContent = "读取失败";
-      contentEl.className = "error";
-      contentEl.textContent = "目录读取失败，请稍后重试";
+      treeEl.innerHTML = '<div class="tree-status">目录读取失败，请稍后重试</div>';
+      renderPreview();
     }
   }
 
-  renderTabs();
-  renderFolder();
+  previewFrameEl.addEventListener("load", function() {
+    previewLoadingEl.classList.add("hidden");
+  });
+
+  init();
 </script>
 </body>
 </html>
