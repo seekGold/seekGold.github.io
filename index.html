@@ -446,8 +446,8 @@
       <h1>Seek Gold</h1>
     </div>
     <div class="sidebar-controls" id="viewToggle">
-      <button class="view-toggle-btn active" data-view-mode="tree">目录树</button>
-      <button class="view-toggle-btn" data-view-mode="latest">各目录最新</button>
+      <button class="view-toggle-btn" data-view-mode="tree">目录树</button>
+      <button class="view-toggle-btn active" data-view-mode="latest">各目录最新</button>
     </div>
     <div class="tree" id="tree">
       <div class="tree-status">正在读取目录文件...</div>
@@ -470,11 +470,8 @@
   </main>
 </div>
 
+<script src="./site-index.js"></script>
 <script>
-  const repoOwner = "seekGold";
-  const repoName = "seekGold.github.io";
-  const defaultBranch = "main";
-
   const treeEl = document.getElementById("tree");
   const viewToggleEl = document.getElementById("viewToggle");
   const previewTitleEl = document.getElementById("previewTitle");
@@ -487,7 +484,7 @@
   const state = {
     tree: null,
     latestFiles: [],
-    viewMode: "tree",
+    viewMode: "latest",
     expandedFolders: {},
     activePath: "",
     activeName: ""
@@ -526,28 +523,18 @@
   }
 
   async function loadAllHtmlFiles() {
-    const url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/git/trees/" + defaultBranch + "?recursive=1";
-    const response = await fetch(url);
-
-    if (!response.ok) {
-      throw new Error("读取失败: " + response.status);
-    }
-
-    const data = await response.json();
-    const tree = Array.isArray(data.tree) ? data.tree : [];
-
-    return tree
-      .filter(function(item) {
-        return item.type === "blob" && /\.html?$/i.test(item.path) && item.path !== "index.html";
-      })
-      .map(function(item) {
+    if (Array.isArray(window.SEEK_GOLD_FILE_INDEX) && window.SEEK_GOLD_FILE_INDEX.length > 0) {
+      return window.SEEK_GOLD_FILE_INDEX.map(function(item) {
         const segments = item.path.split("/");
         return {
-          name: segments[segments.length - 1],
+          name: item.name || segments[segments.length - 1],
           path: item.path,
-          folder: segments.slice(0, -1).join("/")
+          folder: item.folder || segments.slice(0, -1).join("/")
         };
       });
+    }
+
+    throw new Error("文件索引缺失");
   }
 
   function createFolderNode(name, path) {
