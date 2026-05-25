@@ -62,36 +62,144 @@
     font-size: 24px;
   }
 
+  .sidebar-controls {
+    display: flex;
+    gap: 8px;
+    margin: 0 6px 14px;
+  }
+
+  .view-toggle-btn {
+    flex: 1 1 0;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+
+  .view-toggle-btn:hover {
+    border-color: #bfdbfe;
+    background: #f8fbff;
+  }
+
+  .view-toggle-btn.active {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+    color: #1d4ed8;
+  }
+
   .tree {
     display: grid;
-    gap: 12px;
+    gap: 6px;
   }
 
-  .folder {
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    background: var(--panel);
-    padding: 10px;
+  .tree-group {
+    display: grid;
+    gap: 4px;
   }
 
-  .folder-head {
+  .tree-children {
+    margin-left: 14px;
+    padding-left: 12px;
+    border-left: 1px solid #e4eaf3;
+    display: grid;
+    gap: 4px;
+  }
+
+  .tree-folder-row,
+  .tree-file-row {
+    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 2px 4px 10px;
+    gap: 8px;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    text-align: left;
+    transition: 0.18s ease;
   }
 
-  .folder-name {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 700;
+  .tree-folder-row:hover,
+  .tree-file-row:hover {
+    background: var(--primary-soft);
+    border-color: #d9e6ff;
+  }
+
+  .tree-file-row.active {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
+  }
+
+  .tree-arrow {
+    width: 14px;
+    color: var(--muted);
+    font-size: 11px;
+    text-align: center;
+    flex: 0 0 14px;
+    transition: transform 0.18s ease;
+  }
+
+  .tree-folder-row.expanded .tree-arrow {
+    transform: rotate(90deg);
+  }
+
+  .tree-icon {
+    width: 18px;
+    text-align: center;
+    flex: 0 0 18px;
+    font-size: 15px;
+  }
+
+  .tree-folder-meta,
+  .tree-file-meta {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .tree-folder-name,
+  .tree-file-name {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.35;
     word-break: break-all;
   }
 
-  .folder-count {
-    font-size: 13px;
+  .tree-folder-name {
+    color: #334155;
+  }
+
+  .tree-file-name {
+    color: #475569;
+  }
+
+  .tree-file-row.active .tree-file-name {
+    color: #1e3a8a;
+    font-weight: 600;
+  }
+
+  .tree-folder-path,
+  .tree-file-path {
+    display: none;
+  }
+
+  .tree-badge {
+    flex: 0 0 auto;
+    min-width: 44px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eef3fb;
     color: var(--muted);
+    font-size: 11px;
+    text-align: center;
   }
 
   .file-list {
@@ -145,6 +253,83 @@
     color: var(--muted);
     font-size: 13px;
     background: #fff;
+  }
+
+  .tree-empty-children {
+    margin: 2px 0 6px 44px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #fafcff;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .latest-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .latest-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: 0.18s ease;
+  }
+
+  .latest-item:hover {
+    background: #f8fbff;
+    border-color: #bfdbfe;
+  }
+
+  .latest-item.active {
+    background: var(--primary-soft);
+    border-color: var(--primary);
+    box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
+  }
+
+  .latest-meta {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .latest-folder {
+    display: block;
+    margin-bottom: 3px;
+    color: #64748b;
+    font-size: 11px;
+    line-height: 1.3;
+    word-break: break-all;
+  }
+
+  .latest-name {
+    display: block;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+    word-break: break-all;
+  }
+
+  .latest-item.active .latest-name {
+    color: #1e3a8a;
+  }
+
+  .latest-badge {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 11px;
+    font-weight: 600;
   }
 
   .main {
@@ -258,7 +443,11 @@
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
-      <h1>页面导航</h1>
+      <h1>Seek Gold</h1>
+    </div>
+    <div class="sidebar-controls" id="viewToggle">
+      <button class="view-toggle-btn active" data-view-mode="tree">目录树</button>
+      <button class="view-toggle-btn" data-view-mode="latest">各目录最新</button>
     </div>
     <div class="tree" id="tree">
       <div class="tree-status">正在读取目录文件...</div>
@@ -287,6 +476,7 @@
   const defaultBranch = "main";
 
   const treeEl = document.getElementById("tree");
+  const viewToggleEl = document.getElementById("viewToggle");
   const previewTitleEl = document.getElementById("previewTitle");
   const previewSubtitleEl = document.getElementById("previewSubtitle");
   const previewLinkEl = document.getElementById("previewLink");
@@ -295,7 +485,10 @@
   const previewLoadingEl = document.getElementById("previewLoading");
 
   const state = {
-    groups: [],
+    tree: null,
+    latestFiles: [],
+    viewMode: "tree",
+    expandedFolders: {},
     activePath: "",
     activeName: ""
   };
@@ -332,17 +525,6 @@
     });
   }
 
-  function sortGroups(groups) {
-    return groups.slice().sort(function(a, b) {
-      const aTop = a.files.length ? getFileDateValue(a.files[0].name) : -1;
-      const bTop = b.files.length ? getFileDateValue(b.files[0].name) : -1;
-      if (bTop !== aTop) {
-        return bTop - aTop;
-      }
-      return a.path.localeCompare(b.path, "zh-Hans-CN");
-    });
-  }
-
   async function loadAllHtmlFiles() {
     const url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/git/trees/" + defaultBranch + "?recursive=1";
     const response = await fetch(url);
@@ -368,70 +550,206 @@
       });
   }
 
-  function buildGroups(files) {
-    const groupsMap = {};
+  function createFolderNode(name, path) {
+    return {
+      type: "folder",
+      name: name,
+      path: path,
+      folders: [],
+      files: [],
+      latestDate: -1,
+      fileCount: 0
+    };
+  }
+
+  function buildTree(files) {
+    const root = createFolderNode("", "");
+    const folderMap = { "": root };
 
     files.forEach(function(file) {
-      const folder = file.folder || "root";
-      if (!groupsMap[folder]) {
-        groupsMap[folder] = {
-          path: folder,
-          label: folder,
-          files: []
-        };
+      const segments = file.path.split("/");
+      let currentPath = "";
+      let currentNode = root;
+
+      for (let index = 0; index < segments.length - 1; index += 1) {
+        const segment = segments[index];
+        currentPath = currentPath ? currentPath + "/" + segment : segment;
+
+        if (!folderMap[currentPath]) {
+          const nextNode = createFolderNode(segment, currentPath);
+          folderMap[currentPath] = nextNode;
+          currentNode.folders.push(nextNode);
+        }
+
+        currentNode = folderMap[currentPath];
       }
-      groupsMap[folder].files.push(file);
+
+      currentNode.files.push(file);
     });
 
-    return sortGroups(Object.keys(groupsMap).map(function(key) {
-      const group = groupsMap[key];
-      return {
-        path: group.path,
-        label: group.label,
-        files: sortFilesByDateDesc(group.files)
-      };
-    }));
+    function finalizeFolder(node) {
+      node.files = sortFilesByDateDesc(node.files);
+
+      node.folders.forEach(function(child) {
+        finalizeFolder(child);
+      });
+
+      node.folders.sort(function(a, b) {
+        if (b.latestDate !== a.latestDate) {
+          return b.latestDate - a.latestDate;
+        }
+        return a.path.localeCompare(b.path, "zh-Hans-CN");
+      });
+
+      const ownLatest = node.files.length ? getFileDateValue(node.files[0].name) : -1;
+      const childLatest = node.folders.length ? node.folders[0].latestDate : -1;
+      node.latestDate = Math.max(ownLatest, childLatest);
+
+      const childFileCount = node.folders.reduce(function(sum, child) {
+        return sum + child.fileCount;
+      }, 0);
+      node.fileCount = node.files.length + childFileCount;
+    }
+
+    finalizeFolder(root);
+    return root;
+  }
+
+  function initializeExpandedFolders(node) {
+    node.folders.forEach(function(folder) {
+      state.expandedFolders[folder.path] = true;
+      initializeExpandedFolders(folder);
+    });
+  }
+
+  function collectLatestFiles(node, result) {
+    if (node.path && node.files.length > 0) {
+      result.push({
+        folderPath: node.path,
+        file: node.files[0]
+      });
+    }
+
+    node.folders.forEach(function(folder) {
+      collectLatestFiles(folder, result);
+    });
+  }
+
+  function buildLatestFiles(tree) {
+    const result = [];
+    collectLatestFiles(tree, result);
+    return result.sort(function(a, b) {
+      const dateDiff = getFileDateValue(b.file.name) - getFileDateValue(a.file.name);
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+      return a.folderPath.localeCompare(b.folderPath, "zh-Hans-CN");
+    });
+  }
+
+  function renderFileNode(file) {
+    const activeClass = file.path === state.activePath ? "tree-file-row active" : "tree-file-row";
+    return [
+      '<button class="' + activeClass + '" data-file-path="' + escapeHtml(file.path) + '" data-file-name="' + escapeHtml(file.name) + '">',
+      '<span class="tree-arrow"></span>',
+      '<span class="tree-icon">📄</span>',
+      '<span class="tree-file-meta">',
+      '<span class="tree-file-name">' + escapeHtml(file.name) + '</span>',
+      '<span class="tree-file-path">' + escapeHtml(file.path) + '</span>',
+      '</span>',
+      '</button>'
+    ].join("");
+  }
+
+  function renderFolderNode(folder, depth) {
+    const expanded = state.expandedFolders[folder.path] !== false;
+    const rowClass = expanded ? "tree-folder-row expanded" : "tree-folder-row";
+    const children = [];
+
+    folder.folders.forEach(function(childFolder) {
+      children.push(renderFolderNode(childFolder, depth + 1));
+    });
+
+    folder.files.forEach(function(file) {
+      children.push(renderFileNode(file));
+    });
+
+    const childrenHtml = children.length
+      ? '<div class="tree-children' + (expanded ? "" : ' hidden') + '">' + children.join("") + "</div>"
+      : '<div class="tree-empty-children' + (expanded ? "" : ' hidden') + '">当前目录没有 HTML 文件</div>';
+
+    return [
+      '<div class="tree-group">',
+      '<button class="' + rowClass + '" data-folder-path="' + escapeHtml(folder.path) + '">',
+      '<span class="tree-arrow">▶</span>',
+      '<span class="tree-icon">📁</span>',
+      '<span class="tree-folder-meta">',
+      '<span class="tree-folder-name">' + escapeHtml(folder.name) + '</span>',
+      '<span class="tree-folder-path">' + escapeHtml(folder.path) + '</span>',
+      '</span>',
+      '<span class="tree-badge">' + folder.fileCount + ' 个</span>',
+      '</button>',
+      childrenHtml,
+      '</div>'
+    ].join("");
   }
 
   function bindFileEvents() {
-    treeEl.querySelectorAll(".file-btn").forEach(function(button) {
+    viewToggleEl.querySelectorAll("[data-view-mode]").forEach(function(button) {
+      button.classList.toggle("active", button.getAttribute("data-view-mode") === state.viewMode);
+    });
+
+    treeEl.querySelectorAll("[data-file-path]").forEach(function(button) {
       button.addEventListener("click", function() {
-        const path = button.getAttribute("data-path");
-        const name = button.getAttribute("data-name");
+        const path = button.getAttribute("data-file-path");
+        const name = button.getAttribute("data-file-name");
         selectFile(path, name);
+      });
+    });
+
+    treeEl.querySelectorAll("[data-folder-path]").forEach(function(button) {
+      button.addEventListener("click", function() {
+        const path = button.getAttribute("data-folder-path");
+        state.expandedFolders[path] = !(state.expandedFolders[path] !== false);
+        renderTree();
       });
     });
   }
 
-  function renderTree() {
-    if (state.groups.length === 0) {
+  function renderLatestView() {
+    if (state.latestFiles.length === 0) {
       treeEl.innerHTML = '<div class="tree-status">当前没有可展示的 HTML 文件</div>';
       return;
     }
 
-    treeEl.innerHTML = state.groups.map(function(group) {
-      const filesHtml = group.files.length
-        ? group.files.map(function(file) {
-            const activeClass = file.path === state.activePath ? "file-btn active" : "file-btn";
-            return [
-              '<button class="' + activeClass + '" data-path="' + escapeHtml(file.path) + '" data-name="' + escapeHtml(file.name) + '">',
-              '<span class="file-name">' + escapeHtml(file.name) + '</span>',
-              '<span class="file-path">' + escapeHtml(file.path) + '</span>',
-              '</button>'
-            ].join("");
-          }).join("")
-        : '<div class="folder-empty">当前目录没有 HTML 文件</div>';
-
+    treeEl.innerHTML = '<div class="latest-list">' + state.latestFiles.map(function(item) {
+      const activeClass = item.file.path === state.activePath ? "latest-item active" : "latest-item";
       return [
-        '<section class="folder">',
-        '<div class="folder-head">',
-        '<h3 class="folder-name">' + escapeHtml(group.label) + '</h3>',
-        '<span class="folder-count">' + group.files.length + ' 个文件</span>',
-        '</div>',
-        '<div class="file-list">' + filesHtml + '</div>',
-        '</section>'
+        '<button class="' + activeClass + '" data-file-path="' + escapeHtml(item.file.path) + '" data-file-name="' + escapeHtml(item.file.name) + '">',
+        '<span class="tree-icon">📄</span>',
+        '<span class="latest-meta">',
+        '<span class="latest-folder">' + escapeHtml(item.folderPath) + '</span>',
+        '<span class="latest-name">' + escapeHtml(item.file.name) + '</span>',
+        '</span>',
+        '<span class="latest-badge">最新</span>',
+        '</button>'
       ].join("");
-    }).join("");
+    }).join("") + "</div>";
+  }
+
+  function renderTree() {
+    if (!state.tree || (state.tree.fileCount || 0) === 0) {
+      treeEl.innerHTML = '<div class="tree-status">当前没有可展示的 HTML 文件</div>';
+      return;
+    }
+
+    if (state.viewMode === "latest") {
+      renderLatestView();
+    } else {
+      treeEl.innerHTML = state.tree.folders.map(function(folder) {
+        return renderFolderNode(folder, 0);
+      }).join("");
+    }
 
     bindFileEvents();
   }
@@ -467,32 +785,50 @@
   }
 
   function getDefaultFile() {
-    for (let groupIndex = 0; groupIndex < state.groups.length; groupIndex += 1) {
-      const group = state.groups[groupIndex];
-      if (group.files.length > 0) {
-        return group.files[0];
+    function walk(node) {
+      if (node.files.length > 0) {
+        return node.files[0];
       }
+      for (let index = 0; index < node.folders.length; index += 1) {
+        const result = walk(node.folders[index]);
+        if (result) {
+          return result;
+        }
+      }
+      return null;
     }
-    return null;
+
+    return state.tree ? walk(state.tree) : null;
   }
 
   function findFileByPath(path) {
-    for (let groupIndex = 0; groupIndex < state.groups.length; groupIndex += 1) {
-      const group = state.groups[groupIndex];
-      const match = group.files.find(function(file) {
+    function walk(node) {
+      const ownMatch = node.files.find(function(file) {
         return file.path === path;
       });
-      if (match) {
-        return match;
+      if (ownMatch) {
+        return ownMatch;
       }
+
+      for (let index = 0; index < node.folders.length; index += 1) {
+        const result = walk(node.folders[index]);
+        if (result) {
+          return result;
+        }
+      }
+
+      return null;
     }
-    return null;
+
+    return state.tree ? walk(state.tree) : null;
   }
 
   async function init() {
     try {
       const files = await loadAllHtmlFiles();
-      state.groups = buildGroups(files);
+      state.tree = buildTree(files);
+      state.latestFiles = buildLatestFiles(state.tree);
+      initializeExpandedFolders(state.tree);
       renderTree();
 
       const hashPath = location.hash ? decodeURIComponent(location.hash.slice(1)) : "";
@@ -511,6 +847,17 @@
 
   previewFrameEl.addEventListener("load", function() {
     previewLoadingEl.classList.add("hidden");
+  });
+
+  viewToggleEl.querySelectorAll("[data-view-mode]").forEach(function(button) {
+    button.addEventListener("click", function() {
+      const nextMode = button.getAttribute("data-view-mode");
+      if (nextMode === state.viewMode) {
+        return;
+      }
+      state.viewMode = nextMode;
+      renderTree();
+    });
   });
 
   init();
