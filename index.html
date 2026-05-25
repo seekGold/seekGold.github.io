@@ -37,6 +37,10 @@
     padding: 16px;
   }
 
+  .app.locked {
+    display: none;
+  }
+
   .sidebar,
   .main {
     min-height: calc(100vh - 32px);
@@ -418,6 +422,82 @@
     display: none;
   }
 
+  .password-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(6px);
+  }
+
+  .password-card {
+    width: min(360px, 100%);
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  }
+
+  .password-title {
+    margin: 0 0 8px;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  .password-desc {
+    margin: 0 0 14px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #64748b;
+  }
+
+  .password-input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    outline: none;
+    font-size: 14px;
+    color: #1f2937;
+    background: #fff;
+  }
+
+  .password-input:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.24);
+  }
+
+  .password-submit {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px 12px;
+    border: 1px solid var(--primary);
+    border-radius: 12px;
+    background: var(--primary);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .password-submit:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+  }
+
+  .password-error {
+    min-height: 18px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #dc2626;
+  }
+
   @media (max-width: 960px) {
     .app {
       grid-template-columns: 1fr;
@@ -440,7 +520,17 @@
 </style>
 </head>
 <body>
-<div class="app">
+<div class="password-gate" id="passwordGate">
+  <div class="password-card">
+    <h2 class="password-title">Seek Gold</h2>
+    <p class="password-desc">请输入访问密码后再加载完整内容</p>
+    <input id="passwordInput" class="password-input" type="password" placeholder="请输入密码" autocomplete="current-password">
+    <button id="passwordSubmit" class="password-submit" type="button">进入</button>
+    <div id="passwordError" class="password-error"></div>
+  </div>
+</div>
+
+<div class="app locked" id="appRoot">
   <aside class="sidebar">
     <div class="brand">
       <h1>Seek Gold</h1>
@@ -474,6 +564,11 @@
 <script>
   const treeEl = document.getElementById("tree");
   const viewToggleEl = document.getElementById("viewToggle");
+  const appRootEl = document.getElementById("appRoot");
+  const passwordGateEl = document.getElementById("passwordGate");
+  const passwordInputEl = document.getElementById("passwordInput");
+  const passwordSubmitEl = document.getElementById("passwordSubmit");
+  const passwordErrorEl = document.getElementById("passwordError");
   const previewTitleEl = document.getElementById("previewTitle");
   const previewSubtitleEl = document.getElementById("previewSubtitle");
   const previewLinkEl = document.getElementById("previewLink");
@@ -490,6 +585,9 @@
     activeName: ""
   };
 
+  const PASSWORD_HASH = "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3";
+  const PASSWORD_SESSION_KEY = "seek_gold_unlocked";
+
   function escapeHtml(text) {
     return text.replace(/[&<>"']/g, function(char) {
       const map = {
@@ -501,6 +599,19 @@
       };
       return map[char];
     });
+  }
+
+  async function sha256(text) {
+    const data = new TextEncoder().encode(text);
+    const buffer = await crypto.subtle.digest("SHA-256", data);
+    return Array.from(new Uint8Array(buffer)).map(function(value) {
+      return value.toString(16).padStart(2, "0");
+    }).join("");
+  }
+
+  function unlockApp() {
+    passwordGateEl.remove();
+    appRootEl.classList.remove("locked");
   }
 
   function getFileUrl(path) {
@@ -847,7 +958,45 @@
     });
   });
 
-  init();
+  async function verifyPassword() {
+    const password = passwordInputEl.value;
+    if (!password) {
+      passwordErrorEl.textContent = "请输入密码";
+      return;
+    }
+
+    passwordSubmitEl.disabled = true;
+    passwordErrorEl.textContent = "";
+
+    try {
+      const hash = await sha256(password);
+      if (hash !== PASSWORD_HASH) {
+        passwordErrorEl.textContent = "密码错误";
+        return;
+      }
+
+      sessionStorage.setItem(PASSWORD_SESSION_KEY, "1");
+      unlockApp();
+      init();
+    } finally {
+      passwordSubmitEl.disabled = false;
+    }
+  }
+
+  if (sessionStorage.getItem(PASSWORD_SESSION_KEY) === "1") {
+    unlockApp();
+    init();
+  } else {
+    passwordSubmitEl.addEventListener("click", verifyPassword);
+    passwordInputEl.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        verifyPassword();
+      }
+    });
+    setTimeout(function() {
+      passwordInputEl.focus();
+    }, 0);
+  }
 </script>
 </body>
 </html>
