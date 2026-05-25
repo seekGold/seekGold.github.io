@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>页面导航</title>
+<title>Seek Gold</title>
 <style>
   :root {
     color-scheme: light;
@@ -58,15 +58,8 @@
   }
 
   .brand h1 {
-    margin: 0 0 6px;
-    font-size: 24px;
-  }
-
-  .brand p {
     margin: 0;
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 24px;
   }
 
   .tree {
@@ -93,6 +86,7 @@
     margin: 0;
     font-size: 16px;
     font-weight: 700;
+    word-break: break-all;
   }
 
   .folder-count {
@@ -265,7 +259,6 @@
   <aside class="sidebar">
     <div class="brand">
       <h1>页面导航</h1>
-      <p>左侧显示目录与文件列表，点击后在右侧直接预览 HTML 页面内容</p>
     </div>
     <div class="tree" id="tree">
       <div class="tree-status">正在读取目录文件...</div>
@@ -291,10 +284,7 @@
 <script>
   const repoOwner = "seekGold";
   const repoName = "seekGold.github.io";
-  const folders = [
-    { key: "us_stock", label: "us_stock" },
-    { key: "cn_etf", label: "cn_etf" }
-  ];
+  const defaultBranch = "main";
 
   const treeEl = document.getElementById("tree");
   const previewTitleEl = document.getElementById("previewTitle");
@@ -305,7 +295,7 @@
   const previewLoadingEl = document.getElementById("previewLoading");
 
   const state = {
-    filesByFolder: {},
+    groups: [],
     activePath: "",
     activeName: ""
   };
@@ -327,45 +317,101 @@
     return "./" + encodeURI(path);
   }
 
-  async function loadFolder(folder) {
-    const url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/contents/" + encodeURIComponent(folder);
-    const response = await fetch(url);
+  function getFileDateValue(name) {
+    const match = name.match(/^(\d{8})/);
+    return match ? Number(match[1]) : -1;
+  }
 
-    if (response.status === 404) {
-      return [];
-    }
+  function sortFilesByDateDesc(files) {
+    return files.slice().sort(function(a, b) {
+      const dateDiff = getFileDateValue(b.name) - getFileDateValue(a.name);
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+      return b.name.localeCompare(a.name, "zh-Hans-CN");
+    });
+  }
+
+  function sortGroups(groups) {
+    return groups.slice().sort(function(a, b) {
+      const aTop = a.files.length ? getFileDateValue(a.files[0].name) : -1;
+      const bTop = b.files.length ? getFileDateValue(b.files[0].name) : -1;
+      if (bTop !== aTop) {
+        return bTop - aTop;
+      }
+      return a.path.localeCompare(b.path, "zh-Hans-CN");
+    });
+  }
+
+  async function loadAllHtmlFiles() {
+    const url = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/git/trees/" + defaultBranch + "?recursive=1";
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error("读取失败: " + response.status);
     }
 
     const data = await response.json();
-    return data
+    const tree = Array.isArray(data.tree) ? data.tree : [];
+
+    return tree
       .filter(function(item) {
-        return item.type === "file" && /\.html?$/i.test(item.name);
-      })
-      .sort(function(a, b) {
-        return a.name.localeCompare(b.name, "zh-Hans-CN");
+        return item.type === "blob" && /\.html?$/i.test(item.path) && item.path !== "index.html";
       })
       .map(function(item) {
+        const segments = item.path.split("/");
         return {
-          name: item.name,
-          path: folder + "/" + item.name
+          name: segments[segments.length - 1],
+          path: item.path,
+          folder: segments.slice(0, -1).join("/")
         };
       });
   }
 
+  function buildGroups(files) {
+    const groupsMap = {};
+
+    files.forEach(function(file) {
+      const folder = file.folder || "root";
+      if (!groupsMap[folder]) {
+        groupsMap[folder] = {
+          path: folder,
+          label: folder,
+          files: []
+        };
+      }
+      groupsMap[folder].files.push(file);
+    });
+
+    return sortGroups(Object.keys(groupsMap).map(function(key) {
+      const group = groupsMap[key];
+      return {
+        path: group.path,
+        label: group.label,
+        files: sortFilesByDateDesc(group.files)
+      };
+    }));
+  }
+
+  function bindFileEvents() {
+    treeEl.querySelectorAll(".file-btn").forEach(function(button) {
+      button.addEventListener("click", function() {
+        const path = button.getAttribute("data-path");
+        const name = button.getAttribute("data-name");
+        selectFile(path, name);
+      });
+    });
+  }
+
   function renderTree() {
-    const hasAnyFolder = folders.length > 0;
-    if (!hasAnyFolder) {
-      treeEl.innerHTML = '<div class="tree-status">没有可展示的目录</div>';
+    if (state.groups.length === 0) {
+      treeEl.innerHTML = '<div class="tree-status">当前没有可展示的 HTML 文件</div>';
       return;
     }
 
-    treeEl.innerHTML = folders.map(function(folder) {
-      const files = state.filesByFolder[folder.key] || [];
-      const filesHtml = files.length
-        ? files.map(function(file) {
+    treeEl.innerHTML = state.groups.map(function(group) {
+      const filesHtml = group.files.length
+        ? group.files.map(function(file) {
             const activeClass = file.path === state.activePath ? "file-btn active" : "file-btn";
             return [
               '<button class="' + activeClass + '" data-path="' + escapeHtml(file.path) + '" data-name="' + escapeHtml(file.name) + '">',
@@ -379,21 +425,15 @@
       return [
         '<section class="folder">',
         '<div class="folder-head">',
-        '<h3 class="folder-name">' + escapeHtml(folder.label) + '</h3>',
-        '<span class="folder-count">' + files.length + ' 个文件</span>',
+        '<h3 class="folder-name">' + escapeHtml(group.label) + '</h3>',
+        '<span class="folder-count">' + group.files.length + ' 个文件</span>',
         '</div>',
         '<div class="file-list">' + filesHtml + '</div>',
         '</section>'
       ].join("");
     }).join("");
 
-    treeEl.querySelectorAll(".file-btn").forEach(function(button) {
-      button.addEventListener("click", function() {
-        const path = button.getAttribute("data-path");
-        const name = button.getAttribute("data-name");
-        selectFile(path, name);
-      });
-    });
+    bindFileEvents();
   }
 
   function renderPreview() {
@@ -427,21 +467,19 @@
   }
 
   function getDefaultFile() {
-    for (let index = 0; index < folders.length; index += 1) {
-      const folderKey = folders[index].key;
-      const files = state.filesByFolder[folderKey] || [];
-      if (files.length > 0) {
-        return files[0];
+    for (let groupIndex = 0; groupIndex < state.groups.length; groupIndex += 1) {
+      const group = state.groups[groupIndex];
+      if (group.files.length > 0) {
+        return group.files[0];
       }
     }
     return null;
   }
 
   function findFileByPath(path) {
-    for (let index = 0; index < folders.length; index += 1) {
-      const folderKey = folders[index].key;
-      const files = state.filesByFolder[folderKey] || [];
-      const match = files.find(function(file) {
+    for (let groupIndex = 0; groupIndex < state.groups.length; groupIndex += 1) {
+      const group = state.groups[groupIndex];
+      const match = group.files.find(function(file) {
         return file.path === path;
       });
       if (match) {
@@ -453,14 +491,8 @@
 
   async function init() {
     try {
-      const results = await Promise.all(folders.map(function(folder) {
-        return loadFolder(folder.key);
-      }));
-
-      folders.forEach(function(folder, index) {
-        state.filesByFolder[folder.key] = results[index];
-      });
-
+      const files = await loadAllHtmlFiles();
+      state.groups = buildGroups(files);
       renderTree();
 
       const hashPath = location.hash ? decodeURIComponent(location.hash.slice(1)) : "";
