@@ -4,9 +4,12 @@ window.SEEK_GOLD_FILE_INDEX = [
   { path: "cn_stock/daily_etf/20260525_daily_etf.html", name: "20260525_daily_etf.html", folder: "cn_stock/daily_etf" },
   { path: "cn_stock/daily_etf/20260526_daily_etf.html", name: "20260526_daily_etf.html", folder: "cn_stock/daily_etf" },
   { path: "cn_stock/daily_etf/20260527_daily_etf.html", name: "20260527_daily_etf.html", folder: "cn_stock/daily_etf" },
+  { path: "cn_stock/daily_etf/20260528_daily_etf.html", name: "20260528_daily_etf.html", folder: "cn_stock/daily_etf" },
+  { path: "cn_stock/daily_etf/20260529_daily_etf.html", name: "20260529_daily_etf.html", folder: "cn_stock/daily_etf" },
   { path: "cn_stock/daily_follow/20260525_daily_follow.html", name: "20260525_daily_follow.html", folder: "cn_stock/daily_follow" },
   { path: "cn_stock/daily_follow/20260526_daily_follow.html", name: "20260526_daily_follow.html", folder: "cn_stock/daily_follow" },
   { path: "cn_stock/daily_follow/20260527_daily_follow.html", name: "20260527_daily_follow.html", folder: "cn_stock/daily_follow" },
+  { path: "cn_stock/daily_follow/20260529_daily_follow.html", name: "20260529_daily_follow.html", folder: "cn_stock/daily_follow" },
   { path: "cn_stock/top_amount/20260508_top_amount.html", name: "20260508_top_amount.html", folder: "cn_stock/top_amount" },
   { path: "cn_stock/top_amount/20260515_top_amount.html", name: "20260515_top_amount.html", folder: "cn_stock/top_amount" },
   { path: "cn_stock/top_amount/20260519_top_amount.html", name: "20260519_top_amount.html", folder: "cn_stock/top_amount" },
@@ -16,6 +19,7 @@ window.SEEK_GOLD_FILE_INDEX = [
   { path: "cn_stock/top_amount/20260525_top_amount.html", name: "20260525_top_amount.html", folder: "cn_stock/top_amount" },
   { path: "cn_stock/top_amount/20260526_top_amount.html", name: "20260526_top_amount.html", folder: "cn_stock/top_amount" },
   { path: "cn_stock/top_amount/20260527_top_amount.html", name: "20260527_top_amount.html", folder: "cn_stock/top_amount" },
+  { path: "cn_stock/top_amount/20260529_top_amount.html", name: "20260529_top_amount.html", folder: "cn_stock/top_amount" },
   { path: "us_stock/hot_stock/20260501_daily_info.html", name: "20260501_daily_info.html", folder: "us_stock/hot_stock" },
   { path: "us_stock/hot_stock/20260505_daily_info.html", name: "20260505_daily_info.html", folder: "us_stock/hot_stock" },
   { path: "us_stock/hot_stock/20260507_daily_info.html", name: "20260507_daily_info.html", folder: "us_stock/hot_stock" },
@@ -30,5 +34,7 @@ window.SEEK_GOLD_FILE_INDEX = [
   { path: "us_stock/hot_stock/20260520_daily_info.html", name: "20260520_daily_info.html", folder: "us_stock/hot_stock" },
   { path: "us_stock/hot_stock/20260521_daily_info.html", name: "20260521_daily_info.html", folder: "us_stock/hot_stock" },
   { path: "us_stock/hot_stock/20260522_daily_info.html", name: "20260522_daily_info.html", folder: "us_stock/hot_stock" },
-  { path: "us_stock/hot_stock/20260526_daily_info.html", name: "20260526_daily_info.html", folder: "us_stock/hot_stock" }
+  { path: "us_stock/hot_stock/20260526_daily_info.html", name: "20260526_daily_info.html", folder: "us_stock/hot_stock" },
+  { path: "us_stock/hot_stock/20260527_daily_info.html", name: "20260527_daily_info.html", folder: "us_stock/hot_stock" },
+  { path: "us_stock/hot_stock/20260528_daily_info.html", name: "20260528_daily_info.html", folder: "us_stock/hot_stock" }
 ];

@@ -31,10 +31,10 @@
 
   .app {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-columns: 296px minmax(0, 1fr);
     min-height: 100vh;
-    gap: 16px;
-    padding: 16px;
+    gap: 14px;
+    padding: 14px;
   }
 
   .app.locked {
@@ -51,7 +51,7 @@
   }
 
   .sidebar {
-    padding: 18px 14px;
+    padding: 16px 12px;
     overflow: auto;
   }
 
@@ -68,13 +68,50 @@
 
   .sidebar-controls {
     display: flex;
-    gap: 8px;
-    margin: 0 6px 14px;
+    justify-content: flex-start;
+    gap: 6px;
+    margin: 0 4px 10px;
+  }
+
+  .search-box {
+    position: relative;
+    margin: 0 4px 14px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 9px 34px 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: #334155;
+    font-size: 12px;
+    outline: none;
+  }
+
+  .search-input:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.2);
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: #64748b;
+    cursor: pointer;
   }
 
   .view-toggle-btn {
-    flex: 1 1 0;
-    padding: 8px 10px;
+    flex: 0 0 auto;
+    min-width: 86px;
+    padding: 7px 10px;
     border: 1px solid var(--line);
     border-radius: 10px;
     background: #fff;
@@ -537,7 +574,11 @@
     </div>
     <div class="sidebar-controls" id="viewToggle">
       <button class="view-toggle-btn" data-view-mode="tree">目录树</button>
-      <button class="view-toggle-btn active" data-view-mode="latest">各目录最新</button>
+      <button class="view-toggle-btn active" data-view-mode="latest">最新数据</button>
+    </div>
+    <div class="search-box">
+      <input id="searchInput" class="search-input" type="text" placeholder="搜索日期/文件名，如 20260520">
+      <button id="searchClear" class="search-clear" type="button">×</button>
     </div>
     <div class="tree" id="tree">
       <div class="tree-status">正在读取目录文件...</div>
@@ -564,6 +605,8 @@
 <script>
   const treeEl = document.getElementById("tree");
   const viewToggleEl = document.getElementById("viewToggle");
+  const searchInputEl = document.getElementById("searchInput");
+  const searchClearEl = document.getElementById("searchClear");
   const appRootEl = document.getElementById("appRoot");
   const passwordGateEl = document.getElementById("passwordGate");
   const passwordInputEl = document.getElementById("passwordInput");
@@ -577,9 +620,11 @@
   const previewLoadingEl = document.getElementById("previewLoading");
 
   const state = {
+    allFiles: [],
     tree: null,
     latestFiles: [],
     viewMode: "latest",
+    searchQuery: "",
     expandedFolders: {},
     activePath: "",
     activeName: ""
@@ -631,6 +676,19 @@
       }
       return b.name.localeCompare(a.name, "zh-Hans-CN");
     });
+  }
+
+  function getFilteredFiles() {
+    const query = state.searchQuery.trim().toLowerCase();
+    if (!query) return state.allFiles;
+    return state.allFiles.filter(function(file) {
+      return file.name.toLowerCase().includes(query) || file.path.toLowerCase().includes(query);
+    });
+  }
+
+  function getFirstMatchedFile() {
+    const files = sortFilesByDateDesc(getFilteredFiles());
+    return files[0] || null;
   }
 
   async function loadAllHtmlFiles() {
@@ -745,6 +803,10 @@
     });
   }
 
+  function getDisplayFileName(name) {
+    return name.replace(/\.html?$/i, "");
+  }
+
   function renderFileNode(file) {
     const activeClass = file.path === state.activePath ? "tree-file-row active" : "tree-file-row";
     return [
@@ -752,7 +814,7 @@
       '<span class="tree-arrow"></span>',
       '<span class="tree-icon">📄</span>',
       '<span class="tree-file-meta">',
-      '<span class="tree-file-name">' + escapeHtml(file.name) + '</span>',
+      '<span class="tree-file-name">' + escapeHtml(getDisplayFileName(file.name)) + '</span>',
       '<span class="tree-file-path">' + escapeHtml(file.path) + '</span>',
       '</span>',
       '</button>'
@@ -814,20 +876,20 @@
     });
   }
 
-  function renderLatestView() {
-    if (state.latestFiles.length === 0) {
-      treeEl.innerHTML = '<div class="tree-status">当前没有可展示的 HTML 文件</div>';
+  function renderLatestView(displayLatestFiles) {
+    if (displayLatestFiles.length === 0) {
+      treeEl.innerHTML = '<div class="tree-status">没有匹配的 HTML 文件</div>';
       return;
     }
 
-    treeEl.innerHTML = '<div class="latest-list">' + state.latestFiles.map(function(item) {
+    treeEl.innerHTML = '<div class="latest-list">' + displayLatestFiles.map(function(item) {
       const activeClass = item.file.path === state.activePath ? "latest-item active" : "latest-item";
       return [
         '<button class="' + activeClass + '" data-file-path="' + escapeHtml(item.file.path) + '" data-file-name="' + escapeHtml(item.file.name) + '">',
         '<span class="tree-icon">📄</span>',
         '<span class="latest-meta">',
         '<span class="latest-folder">' + escapeHtml(item.folderPath) + '</span>',
-        '<span class="latest-name">' + escapeHtml(item.file.name) + '</span>',
+        '<span class="latest-name">' + escapeHtml(getDisplayFileName(item.file.name)) + '</span>',
         '</span>',
         '<span class="latest-badge">最新</span>',
         '</button>'
@@ -836,15 +898,19 @@
   }
 
   function renderTree() {
-    if (!state.tree || (state.tree.fileCount || 0) === 0) {
-      treeEl.innerHTML = '<div class="tree-status">当前没有可展示的 HTML 文件</div>';
+    const filteredFiles = getFilteredFiles();
+    const displayTree = buildTree(filteredFiles);
+    const displayLatestFiles = buildLatestFiles(displayTree);
+
+    if ((displayTree.fileCount || 0) === 0) {
+      treeEl.innerHTML = '<div class="tree-status">没有匹配的 HTML 文件</div>';
       return;
     }
 
     if (state.viewMode === "latest") {
-      renderLatestView();
+      renderLatestView(displayLatestFiles);
     } else {
-      treeEl.innerHTML = state.tree.folders.map(function(folder) {
+      treeEl.innerHTML = displayTree.folders.map(function(folder) {
         return renderFolderNode(folder, 0);
       }).join("");
     }
@@ -924,6 +990,7 @@
   async function init() {
     try {
       const files = await loadAllHtmlFiles();
+      state.allFiles = files;
       state.tree = buildTree(files);
       state.latestFiles = buildLatestFiles(state.tree);
       initializeExpandedFolders(state.tree);
@@ -956,6 +1023,36 @@
       state.viewMode = nextMode;
       renderTree();
     });
+  });
+
+  function applySearchSelection(openOnEnter) {
+    const first = getFirstMatchedFile();
+    if (!first) return;
+    selectFile(first.path, first.name);
+    if (openOnEnter) {
+      window.open(getFileUrl(first.path), "_blank", "noopener,noreferrer");
+    }
+  }
+
+  searchInputEl.addEventListener("input", function() {
+    state.searchQuery = searchInputEl.value;
+    renderTree();
+    applySearchSelection(false);
+  });
+
+  searchInputEl.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      applySearchSelection(true);
+    }
+  });
+
+  searchClearEl.addEventListener("click", function() {
+    searchInputEl.value = "";
+    state.searchQuery = "";
+    renderTree();
+    applySearchSelection(false);
+    searchInputEl.focus();
   });
 
   async function verifyPassword() {
