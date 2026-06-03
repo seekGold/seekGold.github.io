@@ -804,7 +804,22 @@
   }
 
   function getDisplayFileName(name) {
-    return name.replace(/\.html?$/i, "");
+    const baseName = name.replace(/\.html?$/i, "");
+    const displayMap = {
+      daily_info: "热门美股",
+      daily_etf: "ETF行情",
+      daily_follow: "关注股票",
+      top_amount: "成交TOP"
+    };
+
+    const match = baseName.match(/^(\d{8})_(.+)$/);
+    if (!match) {
+      return baseName;
+    }
+
+    const datePart = match[1];
+    const typePart = match[2];
+    return datePart + "_" + (displayMap[typePart] || typePart);
   }
 
   function renderFileNode(file) {
