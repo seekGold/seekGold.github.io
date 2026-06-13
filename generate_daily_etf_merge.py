@@ -499,6 +499,19 @@ def build_html(payload):
       border-radius: 999px;
       opacity: 0.92;
     }}
+    .metric-bar-fill.top-rank-1 {{
+      filter: brightness(1.18) saturate(1.12);
+    }}
+    .metric-bar-fill.top-rank-2 {{
+      filter: brightness(1.12) saturate(1.08);
+    }}
+    .metric-bar-fill.top-rank-3 {{
+      filter: brightness(1.06) saturate(1.04);
+    }}
+    .metric-bar.is-max {{
+      border-color: rgba(250, 204, 21, 0.8);
+      box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.35), 0 0 0 1px rgba(250, 204, 21, 0.18);
+    }}
     .metric-bar-fill.positive {{
       background: linear-gradient(90deg, rgba(239,68,68,0.82), rgba(239,68,68,0.96));
     }}
@@ -669,6 +682,48 @@ def build_html(payload):
         return state.sortDesc ? bText.localeCompare(aText, "zh-Hans-CN") : aText.localeCompare(bText, "zh-Hans-CN");
       }});
 
+      const localScaleByKey = {{}};
+      const localRankByKey = {{}};
+      payload.columns.forEach(function(column) {{
+        if (!column.isBar) {{
+          return;
+        }}
+        let positiveMax = 0;
+        let negativeMax = 0;
+        const ranked = [];
+        sortedRows.forEach(function(row) {{
+          const numeric = Number(((row.cells[column.key] || {{}}).numeric));
+          if (!Number.isFinite(numeric)) {{
+            return;
+          }}
+          ranked.push({{
+            date: row.date,
+            absValue: Math.abs(numeric)
+          }});
+          if (numeric < 0) {{
+            negativeMax = Math.max(negativeMax, Math.abs(numeric));
+          }} else {{
+            positiveMax = Math.max(positiveMax, numeric);
+          }}
+        }});
+        localScaleByKey[column.key] = {{
+          positiveMax: positiveMax,
+          negativeMax: negativeMax
+        }};
+        ranked.sort(function(a, b) {{
+          return b.absValue - a.absValue;
+        }});
+        const rankMap = {{}};
+        const absMax = ranked.length ? ranked[0].absValue : 0;
+        ranked.forEach(function(item, index) {{
+          rankMap[item.date] = {{
+            rank: index + 1,
+            isMax: absMax > 0 && item.absValue === absMax
+          }};
+        }});
+        localRankByKey[column.key] = rankMap;
+      }});
+
       document.getElementById("tableHead").querySelectorAll("[data-sort-key]").forEach(function(button) {{
         button.addEventListener("click", function() {{
           const nextKey = button.getAttribute("data-sort-key") || "日期";
@@ -695,17 +750,33 @@ def build_html(payload):
             const numeric = Number(cell.numeric);
             let width = 0;
             let cls = "positive";
+            const isPremiumColumn = column.key === "溢价";
+            const scale = isPremiumColumn ? (localScaleByKey[column.key] || {{ positiveMax: 0, negativeMax: 0 }}) : column;
             if (Number.isFinite(numeric)) {{
               if (numeric < 0) {{
                 cls = "negative";
-                width = column.negativeMax > 0 ? (Math.abs(numeric) / column.negativeMax) * 100 : 0;
+                width = scale.negativeMax > 0 ? (Math.abs(numeric) / scale.negativeMax) * 100 : 0;
               }} else {{
                 cls = "positive";
-                width = column.positiveMax > 0 ? (numeric / column.positiveMax) * 100 : 0;
+                width = scale.positiveMax > 0 ? (numeric / scale.positiveMax) * 100 : 0;
               }}
             }}
             width = Math.max(0, Math.min(100, width));
-            return '<td class="metric-cell"><div class="metric-bar"><div class="metric-bar-fill ' + cls + '" style="width:' + width.toFixed(2) + '%"></div><div class="metric-bar-text">' + escapeHtml(cell.text || "-") + "</div></div></td>";
+            let barExtraClass = "";
+            let fillExtraClass = "";
+            if (isPremiumColumn && Number.isFinite(numeric) && numeric !== 0) {{
+              width = Math.max(width, 18);
+              const rankInfo = ((localRankByKey[column.key] || {{}})[row.date]) || null;
+              if (rankInfo) {{
+                if (rankInfo.isMax) {{
+                  barExtraClass += " is-max";
+                }}
+                if (rankInfo.rank >= 1 && rankInfo.rank <= 3) {{
+                  fillExtraClass += " top-rank-" + String(rankInfo.rank);
+                }}
+              }}
+            }}
+            return '<td class="metric-cell"><div class="metric-bar' + barExtraClass + '"><div class="metric-bar-fill ' + cls + fillExtraClass + '" style="width:' + width.toFixed(2) + '%"></div><div class="metric-bar-text">' + escapeHtml(cell.text || "-") + "</div></div></td>";
           }}
           return "<td>" + escapeHtml(cell.text || "-") + "</td>";
         }}).join("");
