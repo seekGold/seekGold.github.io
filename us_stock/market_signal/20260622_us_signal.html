@@ -1,0 +1,2072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>美指信号</title>
+  <base href="file:///Users/bytedance/Documents/py_code/ai_trader/trader_v2/trade_us/data/output/" />
+  <style>
+
+    :root {
+      --preview-scale: 1;
+      --preview-height: calc(100vh - 132px);
+      --page-max-width: min(100vw - 20px, 2400px);
+      --card-max-width: min(100vw - 20px, 2360px);
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      padding: 12px 10px 18px;
+      box-sizing: border-box;
+    }
+    .page-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: var(--page-max-width);
+      margin: 0 auto;
+    }
+    .switch-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .switch-row-theme {
+      margin-top: -6px;
+    }
+    .switch-btn {
+      padding: 12px 22px;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(71, 85, 105, 0.78), rgba(55, 65, 81, 0.94));
+      color: #e5e7eb;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+    .switch-btn:hover {
+      transform: translateY(-1px);
+    }
+    .switch-btn.active {
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.34), rgba(37, 99, 235, 0.28));
+      color: #bfdbfe;
+      border-color: rgba(96, 165, 250, 0.45);
+    }
+    .switch-row-theme .switch-btn {
+      background: rgba(88, 28, 135, 0.22);
+      border-color: rgba(168, 85, 247, 0.34);
+      color: #e9d5ff;
+    }
+    .switch-row-theme .switch-btn.active {
+      background: rgba(126, 34, 206, 0.34);
+      border-color: rgba(192, 132, 252, 0.52);
+      color: #faf5ff;
+    }
+    .page-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      color: #f8fafc;
+    }
+    .combined-generated-time {
+      align-self: flex-start;
+      margin-top: -8px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 700;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid rgba(71, 85, 105, 0.62);
+      border-radius: 999px;
+      padding: 4px 10px;
+    }
+    .toolbar {
+      display: none;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .column-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .range-field {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #374151;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .range-field input[type="range"] {
+      min-width: 120px;
+      width: 140px;
+    }
+    .range-value {
+      min-width: 44px;
+      text-align: right;
+      color: #94a3b8;
+      font-variant-numeric: tabular-nums;
+    }
+    .page-logo {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    .page-card {
+      width: min(100%, var(--card-max-width));
+      margin: 0 auto;
+      border: 1px solid #374151;
+      border-radius: 10px;
+      background: #111827;
+      overflow: hidden;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+      display: none;
+    }
+    .page-card.active {
+      display: block;
+    }
+    .page-card-header {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 14px;
+      background: #0f172a;
+      border-bottom: 1px solid #334155;
+    }
+    .page-index {
+      color: #60a5fa;
+      font-weight: 800;
+      min-width: 28px;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+    .page-card-header a {
+      color: #fcd34d;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .page-card-title {
+      color: #f8fafc;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+    }
+    .trade-record-card-title {
+      color: #fcd34d;
+    }
+    .page-card-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-left: auto;
+    }
+    .outer-view-switches {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 14px 0;
+      background: #0f172a;
+    }
+    .outer-view-btn {
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: linear-gradient(180deg, rgba(51, 65, 85, 0.78), rgba(30, 41, 59, 0.92));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 6px 14px rgba(15, 23, 42, 0.16);
+      color: #e5e7eb;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.16s ease, background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+    }
+    .outer-view-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(148, 163, 184, 0.42);
+      background: linear-gradient(180deg, rgba(71, 85, 105, 0.86), rgba(30, 41, 59, 0.98));
+    }
+    .outer-view-btn.active {
+      background: linear-gradient(180deg, rgba(37, 99, 235, 0.34), rgba(30, 64, 175, 0.26));
+      color: #dbeafe;
+      border-color: rgba(96, 165, 250, 0.55);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 8px 18px rgba(37, 99, 235, 0.14);
+    }
+    .page-card-header a:hover {
+      text-decoration: underline;
+    }
+    .page-preview {
+      padding: 0;
+      background: transparent;
+    }
+    .page-preview.overview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      align-items: start;
+    }
+    .overview-period-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px 0;
+      flex-wrap: wrap;
+    }
+    .overview-period-label {
+      color: #94a3b8;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .overview-period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .overview-period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.72);
+      background: rgba(15, 23, 42, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .overview-period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    .page-preview.overview-grid .page-preview-block {
+      margin-top: 0 !important;
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 12px;
+      padding: 8px;
+      background: rgba(15, 23, 42, 0.72);
+    }
+    .page-preview.overview-grid .page-preview-subtitle {
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+    .page-preview-block + .page-preview-block {
+      margin-top: 12px;
+    }
+    .page-preview-subtitle {
+      margin: 0 0 8px;
+      color: #cbd5e1;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .page-preview-inner {
+      height: var(--preview-height);
+      overflow-x: hidden;
+      overflow-y: hidden;
+      border-radius: 12px;
+      background: #111827;
+    }
+    .page-preview-inner.overview-summary {
+      height: auto;
+      overflow: visible;
+      background: transparent;
+    }
+    .page-preview-inner.overview-summary iframe {
+      height: 268px;
+      min-height: 220px;
+      background: transparent;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+      background: #111827;
+      transform: none;
+      transform-origin: top left;
+    }
+    @media (max-width: 960px) {
+      :root {
+        --preview-scale: 1;
+        --preview-height: calc(100vh - 118px);
+      }
+      body {
+        padding: 10px;
+      }
+      .page-preview {
+        padding: 8px;
+      }
+      .page-preview.overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+    @media (max-width: 640px) {
+      .page-preview.overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  
+    .page-title span::after {
+      content: "同步时间 2026-06-22 14:06:29";
+      display: block;
+      margin-top: 4px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .toolbar, .switch-row, .page-card-header {
+      display: none !important;
+    }
+    .page-card {
+      display: block !important;
+    }
+    .page-wrap {
+      padding-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page-wrap">
+    <div class="page-title"><span>美指信号</span></div>
+<section class="page-card active us-signal-summary-card" data-panel="panel-00">
+    <div class="page-card-header">
+      <span class="page-index">00</span>
+      <span class="page-card-title">全部页面</span>
+    </div>
+
+    <div class="overview-period-toolbar">
+      <span class="overview-period-label">水位时间范围</span>
+      <div class="overview-period-switches">
+        <button type="button" class="overview-period-btn" data-overview-period="6mo">6个月</button>
+        <button type="button" class="overview-period-btn" data-overview-period="1y">1年</button>
+        <button type="button" class="overview-period-btn" data-overview-period="2y">2年</button>
+        <button type="button" class="overview-period-btn active" data-overview-period="3y">3年</button>
+      </div>
+    </div>
+    <div class="page-preview overview-grid">
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">01 标普VIX指数</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;metrics&quot;&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 VIX&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;16.4&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 SPY&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;746.74&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;当前状态&lt;/div&gt;&lt;div class=&quot;metric-value value-orange&quot;&gt;警惕&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;SPY 匹配日期&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;2026-06-18&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;前收盘&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;18.44&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric metric-period-card metric-period-global&quot; data-period-values=&quot;{&amp;quot;6mo&amp;quot;: &amp;quot;26.0%&amp;quot;, &amp;quot;1y&amp;quot;: &amp;quot;34.9%&amp;quot;, &amp;quot;2y&amp;quot;: &amp;quot;35.7%&amp;quot;, &amp;quot;3y&amp;quot;: &amp;quot;51.3%&amp;quot;}&quot; data-default-period=&quot;3y&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;水位&lt;/div&gt;&lt;div class=&quot;period-switches&quot;&gt;&lt;/div&gt;&lt;div class=&quot;metric-value metric-period-value&quot;&gt;51.3%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">02 纳指VXN指数</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;metrics&quot;&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 VXN&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;26.31&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 QQQ&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;-&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;当前状态&lt;/div&gt;&lt;div class=&quot;metric-value value-orange&quot;&gt;警惕&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;QQQ 匹配日期&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;2026-06-18&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;前收盘&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;28.56&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric metric-period-card metric-period-global&quot; data-period-values=&quot;{&amp;quot;6mo&amp;quot;: &amp;quot;72.4%&amp;quot;, &amp;quot;1y&amp;quot;: &amp;quot;83.9%&amp;quot;, &amp;quot;2y&amp;quot;: &amp;quot;85.2%&amp;quot;, &amp;quot;3y&amp;quot;: &amp;quot;90.1%&amp;quot;}&quot; data-default-period=&quot;3y&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;水位&lt;/div&gt;&lt;div class=&quot;period-switches&quot;&gt;&lt;/div&gt;&lt;div class=&quot;metric-value metric-period-value&quot;&gt;90.1%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">03 恐慌贪婪</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;metrics&quot;&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新指数&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;37.26&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 SPY&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;746.74&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;当前情绪&lt;/div&gt;&lt;div class=&quot;metric-value value-orange&quot;&gt;恐惧&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;SPY 匹配日期&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;2026-06-18&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;前收盘&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;37.51&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric metric-period-card metric-period-global&quot; data-period-values=&quot;{&amp;quot;6mo&amp;quot;: &amp;quot;32.3%&amp;quot;, &amp;quot;1y&amp;quot;: &amp;quot;30.7%&amp;quot;, &amp;quot;2y&amp;quot;: &amp;quot;29.6%&amp;quot;, &amp;quot;3y&amp;quot;: &amp;quot;18.5%&amp;quot;}&quot; data-default-period=&quot;3y&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;水位&lt;/div&gt;&lt;div class=&quot;period-switches&quot;&gt;&lt;/div&gt;&lt;div class=&quot;metric-value metric-period-value&quot;&gt;18.5%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">04 VIX&amp;VXN&amp;Fear</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;metrics&quot;&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 VIX&lt;/div&gt;&lt;div class=&quot;metric-value-row&quot;&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;16.4&lt;/div&gt;&lt;span class=&quot;metric-change metric-change-negative&quot;&gt;-11.06%&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 Fear&lt;/div&gt;&lt;div class=&quot;metric-value-row&quot;&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;37.26&lt;/div&gt;&lt;span class=&quot;metric-change metric-change-positive&quot;&gt;+0.00%&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 VXN&lt;/div&gt;&lt;div class=&quot;metric-value-row&quot;&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;26.31&lt;/div&gt;&lt;span class=&quot;metric-change metric-change-negative&quot;&gt;-7.88%&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新日期&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;2026-06-15&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 NAAIM&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;79.27&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric metric-period-card metric-period-global&quot; data-period-values=&quot;{&amp;quot;6mo&amp;quot;: &amp;quot;39.7%&amp;quot;, &amp;quot;1y&amp;quot;: &amp;quot;40.8%&amp;quot;, &amp;quot;2y&amp;quot;: &amp;quot;44.2%&amp;quot;, &amp;quot;3y&amp;quot;: &amp;quot;49.6%&amp;quot;}&quot; data-default-period=&quot;3y&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;综合水位&lt;/div&gt;&lt;div class=&quot;period-switches&quot;&gt;&lt;/div&gt;&lt;div class=&quot;metric-value metric-period-value&quot;&gt;49.6%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">05 纳指100PE</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;metrics&quot;&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新纳指100 PE&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;30.86&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 QQQ&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;742.74&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;中位中枢 PE&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;32.52&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;QQQ 匹配日期&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;2026-06-01&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;前收盘&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;33.81&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric metric-period-card metric-period-global&quot; data-period-values=&quot;{&amp;quot;6mo&amp;quot;: &amp;quot;7.1%&amp;quot;, &amp;quot;1y&amp;quot;: &amp;quot;3.8%&amp;quot;, &amp;quot;2y&amp;quot;: &amp;quot;2.0%&amp;quot;, &amp;quot;3y&amp;quot;: &amp;quot;23.0%&amp;quot;}&quot; data-default-period=&quot;3y&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;水位&lt;/div&gt;&lt;div class=&quot;period-switches&quot;&gt;&lt;/div&gt;&lt;div class=&quot;metric-value metric-period-value&quot;&gt;23.0%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">06 NAAIM仓位</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;metrics&quot;&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 NAAIM&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;79.27&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新 SPY&lt;/div&gt;&lt;div class=&quot;metric-value value-blue&quot;&gt;725.43&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;当前仓位&lt;/div&gt;&lt;div class=&quot;metric-value value-orange&quot;&gt;中性&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新日期&lt;/div&gt;&lt;div class=&quot;metric-value-row&quot;&gt;&lt;div class=&quot;metric-value&quot;&gt;2026-06-10&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;前收盘&lt;/div&gt;&lt;div class=&quot;metric-value-row&quot;&gt;&lt;div class=&quot;metric-value&quot;&gt;86.82&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;水位&lt;/div&gt;&lt;div class=&quot;metric-value-row&quot;&gt;&lt;div class=&quot;metric-value&quot;&gt;36.6%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">07 QQQ市场宽度</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+    .breadth-shell { display: grid; grid-template-columns: 1.04fr 1fr; gap: 10px; }
+    .panel {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .left-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .subline, .subline + .ma-card, .ma-card + .ma-card {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(71, 85, 105, 0.35);
+    }
+    .subline .metric {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+    }
+    .subline .metric-label {
+      margin-bottom: 4px;
+    }
+    .subline .period-switches {
+      margin-bottom: 6px;
+    }
+    .ma-name {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .ma-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .ma-value.value-blue { color: #60a5fa; }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  
+&lt;div class=&quot;breadth-shell&quot;&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;left-grid&quot;&gt;
+      &lt;div&gt;&lt;div class=&quot;metric-label&quot;&gt;MA120&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;55.4% (56/101)&lt;/div&gt;&lt;/div&gt;
+      &lt;div&gt;&lt;div class=&quot;metric-label&quot;&gt;MA50&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;55.4% (56/101)&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;subline&quot;&gt;&lt;div class=&quot;metric metric-period-card metric-period-global&quot; data-period-values=&quot;{&amp;quot;6mo&amp;quot;: &amp;quot;96.4%&amp;quot;, &amp;quot;1y&amp;quot;: &amp;quot;98.2%&amp;quot;, &amp;quot;2y&amp;quot;: &amp;quot;99.1%&amp;quot;, &amp;quot;3y&amp;quot;: &amp;quot;99.4%&amp;quot;}&quot; data-default-period=&quot;3y&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;QQQ水位&lt;/div&gt;&lt;div class=&quot;period-switches&quot;&gt;&lt;/div&gt;&lt;div class=&quot;metric-value metric-period-value&quot;&gt;99.4%&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;ma-card&quot;&gt;&lt;div class=&quot;ma-name&quot;&gt;最新 QQQ&lt;/div&gt;&lt;div class=&quot;ma-value value-blue&quot;&gt;740.62&lt;/div&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;ma-card&quot;&gt;&lt;div class=&quot;ma-name&quot;&gt;MA20&lt;/div&gt;&lt;div class=&quot;ma-value&quot;&gt;41.6% (42/101)&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;ma-card&quot;&gt;&lt;div class=&quot;ma-name&quot;&gt;MA10&lt;/div&gt;&lt;div class=&quot;ma-value&quot;&gt;45.5% (46/101)&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;ma-card&quot;&gt;&lt;div class=&quot;ma-name&quot;&gt;MA5&lt;/div&gt;&lt;div class=&quot;ma-value&quot;&gt;39.6% (40/101)&lt;/div&gt;&lt;/div&gt;
+    &lt;div class=&quot;ma-card&quot;&gt;&lt;div class=&quot;ma-name&quot;&gt;最新日期&lt;/div&gt;&lt;div class=&quot;ma-value&quot;&gt;2026-06-18&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+      <div class="page-preview-block">
+        <div class="page-preview-subtitle">08 巴菲特指数</div>
+        <div class="page-preview-inner overview-summary">
+          <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;zh-CN&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;style&gt;
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      padding: 6px;
+      box-sizing: border-box;
+      font-family: &quot;Inter&quot;, &quot;PingFang SC&quot;, &quot;Hiragino Sans GB&quot;, &quot;Microsoft YaHei&quot;, sans-serif;
+      color: #e5e7eb;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .metric {
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(71, 85, 105, 0.55);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .metric-label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      margin-bottom: 6px;
+    }
+    .metric-value {
+      color: #f8fafc;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    .metric-value-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .metric-change {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+    .metric-change-positive {
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(248, 113, 113, 0.32);
+    }
+    .metric-change-negative {
+      color: #bbf7d0;
+      background: rgba(34, 197, 94, 0.16);
+      border: 1px solid rgba(74, 222, 128, 0.30);
+    }
+    .metric-value.value-blue { color: #60a5fa; }
+    .metric-value.value-orange { color: #f59e0b; }
+    .metric-value.value-red { color: #f87171; }
+    .metric-extra {
+      margin-top: 6px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .period-switches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+    .period-switches:empty {
+      display: none;
+      margin-bottom: 0;
+    }
+    .period-btn {
+      border: 1px solid rgba(71, 85, 105, 0.6);
+      background: rgba(30, 41, 59, 0.92);
+      color: #94a3b8;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .period-btn.active {
+      background: rgba(59, 130, 246, 0.18);
+      border-color: rgba(96, 165, 250, 0.45);
+      color: #bfdbfe;
+    }
+    
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;div class=&quot;metrics&quot;&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;Buffett Indicator&lt;/div&gt;&lt;div class=&quot;metric-value value-red&quot;&gt;214.39%&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;GDP&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;31.82T&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;总市值&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;68.22T&lt;/div&gt;&lt;/div&gt;&lt;div class=&quot;metric&quot;&gt;&lt;div class=&quot;metric-label&quot;&gt;最新日期&lt;/div&gt;&lt;div class=&quot;metric-value&quot;&gt;2026-06-09&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;script&gt;
+    document.querySelectorAll(&#x27;.metric-period-card&#x27;).forEach((card) =&gt; {
+      const values = JSON.parse(card.dataset.periodValues || &#x27;{}&#x27;);
+      const valueNode = card.querySelector(&#x27;.metric-period-value&#x27;);
+      const buttons = Array.from(card.querySelectorAll(&#x27;.period-btn&#x27;));
+      const useGlobalPeriod = card.classList.contains(&#x27;metric-period-global&#x27;);
+      const render = (periodKey) =&gt; {
+        if (valueNode) {
+          valueNode.textContent = values[periodKey] || &#x27;-&#x27;;
+        }
+        buttons.forEach((button) =&gt; {
+          button.classList.toggle(&#x27;active&#x27;, button.dataset.period === periodKey);
+        });
+      };
+      const defaultPeriod = card.dataset.defaultPeriod || &#x27;3y&#x27;;
+      if (!useGlobalPeriod) {
+        buttons.forEach((button) =&gt; {
+          button.addEventListener(&#x27;click&#x27;, () =&gt; render(button.dataset.period || defaultPeriod));
+        });
+      }
+      render(defaultPeriod in values ? defaultPeriod : (buttons[0]?.dataset.period || defaultPeriod));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;" loading="lazy"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+  <script>
+
+    const useSwitchTabs = true;
+    const columnWidthRange = document.getElementById("columnWidthRange");
+    const columnGapRange = document.getElementById("columnGapRange");
+    const columnWidthValue = document.getElementById("columnWidthValue");
+    const columnGapValue = document.getElementById("columnGapValue");
+    const nameFontSizeRange = document.getElementById("nameFontSizeRange");
+    const nameFontSizeValue = document.getElementById("nameFontSizeValue");
+    const resetColumnLayout = document.getElementById("resetColumnLayout");
+    const previewIframes = Array.from(document.querySelectorAll("iframe"));
+    const columnStorageKey = "市场指数_图片HTML_column_layout";
+    const isTradeRecordPreview = false;
+    const showColumnControls = false;
+    const defaultPanelId = "panel-00";
+
+    function buildIframeColumnStyle() {
+      return `
+        :root {
+          --combined-cell-min-width: ${columnWidthRange?.value || "84"}px;
+          --combined-cell-gap: ${columnGapRange?.value || "0"}px;
+          --combined-name-font-size: ${nameFontSizeRange?.value || "14"}px;
+        }
+        html, body {
+          width: 100% !important;
+          overflow-x: hidden !important;
+        }
+        body {
+          padding: 8px !important;
+        }
+        .page {
+          max-width: none !important;
+          margin: 0 !important;
+        }
+        .hero {
+          display: none !important;
+        }
+        .toolbar {
+          margin-bottom: 8px !important;
+        }
+        table, .dataframe, [role="table"] {
+          min-width: 100% !important;
+          border-collapse: separate !important;
+          border-spacing: var(--combined-cell-gap) 0 !important;
+        }
+        th, td, [role="columnheader"], [role="cell"] {
+          min-width: var(--combined-cell-min-width) !important;
+        }
+        .combined-name-cell {
+          font-size: var(--combined-name-font-size) !important;
+          line-height: 1.25;
+        }
+      `;
+    }
+
+    function updateColumnValueText() {
+      if (columnWidthValue && columnWidthRange) {
+        columnWidthValue.textContent = `${columnWidthRange.value}px`;
+      }
+      if (columnGapValue && columnGapRange) {
+        columnGapValue.textContent = `${columnGapRange.value}px`;
+      }
+      if (nameFontSizeValue && nameFontSizeRange) {
+        nameFontSizeValue.textContent = `${nameFontSizeRange.value}px`;
+      }
+    }
+
+    function tagNameColumnsInDocument(doc) {
+      const tableRoots = Array.from(doc.querySelectorAll("table, .dataframe, [role='table']"));
+      tableRoots.forEach((table) => {
+        table.querySelectorAll(".combined-name-cell").forEach((cell) => {
+          cell.classList.remove("combined-name-cell");
+        });
+        const headerRow = table.querySelector("thead tr") || table.querySelector("tr") || table.querySelector("[role='row']");
+        if (!headerRow) {
+          return;
+        }
+        const headerCells = Array.from(headerRow.querySelectorAll("th, td, [role='columnheader'], [role='cell']"));
+        const nameIndex = headerCells.findIndex((cell) => String(cell.textContent || "").trim() === "名称");
+        if (nameIndex < 0) {
+          return;
+        }
+        const rowSelector = table.matches("[role='table']") ? "[role='row']" : "tr";
+        table.querySelectorAll(rowSelector).forEach((row) => {
+          const cells = Array.from(row.querySelectorAll("th, td, [role='columnheader'], [role='cell']"));
+          const targetCell = cells[nameIndex];
+          if (targetCell) {
+            targetCell.classList.add("combined-name-cell");
+          }
+        });
+      });
+    }
+
+    function applyColumnLayoutToIframe(iframe) {
+      if (!showColumnControls) {
+        return;
+      }
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.documentElement) {
+          return;
+        }
+        let styleTag = doc.getElementById("combinedColumnControlStyle");
+        if (!styleTag) {
+          styleTag = doc.createElement("style");
+          styleTag.id = "combinedColumnControlStyle";
+          doc.head?.appendChild(styleTag);
+        }
+        styleTag.textContent = buildIframeColumnStyle();
+        tagNameColumnsInDocument(doc);
+      } catch (_error) {}
+    }
+
+    function queueOverviewSummaryReapply(iframe) {
+      if (iframe.dataset.overviewReapplyBound === "1") {
+        return;
+      }
+      iframe.dataset.overviewReapplyBound = "1";
+      [260, 720, 1500, 2800].forEach((delay) => {
+        window.setTimeout(() => applyOverviewSummaryToIframe(iframe), delay);
+      });
+    }
+
+    function bindOverviewSummaryObserver(iframe, doc) {
+      if (iframe.dataset.overviewObserverBound === "1") {
+        return;
+      }
+      const targetNode = doc.body || doc.documentElement;
+      if (!targetNode) {
+        return;
+      }
+      iframe.dataset.overviewObserverBound = "1";
+      let timer = null;
+      const observer = new MutationObserver(() => {
+        const lastApplyAt = Number(iframe.dataset.overviewLastApplyAt || "0");
+        if (Date.now() - lastApplyAt < 160) {
+          return;
+        }
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => applyOverviewSummaryToIframe(iframe), 120);
+      });
+      observer.observe(targetNode, { childList: true, subtree: true, characterData: true });
+    }
+
+    function applyOverviewSummaryToIframe(iframe) {
+      if (iframe.dataset.overviewSummary !== "1") {
+        return;
+      }
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.documentElement) {
+          return;
+        }
+        iframe.dataset.overviewLastApplyAt = String(Date.now());
+        queueOverviewSummaryReapply(iframe);
+        bindOverviewSummaryObserver(iframe, doc);
+        let styleTag = doc.getElementById("combinedOverviewSummaryStyle");
+        if (!styleTag) {
+          styleTag = doc.createElement("style");
+          styleTag.id = "combinedOverviewSummaryStyle";
+          doc.head?.appendChild(styleTag);
+        }
+        styleTag.textContent = `
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            overflow: hidden !important;
+          }
+          body {
+            padding: 6px !important;
+            box-sizing: border-box !important;
+          }
+          .header, .toolbar, .toolbar-summary, .view-switch, .outer-view-switches,
+          .view-section, .panels, .panel, .report-panel, .report-toolbar,
+          .chart-grid, .component-layout, .gauge-card, .chart-card, .sentiment-list,
+          #chart, #history-chart, #gauge-chart, #component-chart,
+          canvas, svg, details, summary {
+            display: none !important;
+          }
+          .card, .wrap, .page, main {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            background: transparent !important;
+            min-height: auto !important;
+          }
+          .metrics, .cards {
+            margin: 0 !important;
+          }
+          .cards {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+          }
+          .metrics, .cards, .metric, .card {
+            font-family: "Inter", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
+          }
+          .metrics {
+            gap: 8px !important;
+          }
+          .metric, .card {
+            border-radius: 10px !important;
+            border-color: rgba(71, 85, 105, 0.55) !important;
+            background: rgba(15, 23, 42, 0.88) !important;
+            box-shadow: none !important;
+          }
+          .metric-label, .label, .metric-inline-label, .metric-combo-label {
+            color: #94a3b8 !important;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.01em !important;
+          }
+          .metric-value, .value, .metric-inline-value, .metric-combo-value, .metric-main-value {
+            color: #f8fafc !important;
+            font-size: 15px !important;
+            font-weight: 800 !important;
+            line-height: 1.2 !important;
+          }
+          .overview-ma120-card {
+            margin-top: 8px !important;
+            padding-top: 8px !important;
+            border-top: 1px solid rgba(71, 85, 105, 0.4) !important;
+          }
+          .overview-ma120-card .metric-combo-label {
+            color: #fda4af !important;
+          }
+        `;
+        const overviewTitle = String(
+          iframe.closest(".page-preview-block")?.querySelector(".page-preview-subtitle")?.textContent || ""
+        );
+        const summaryRoot = doc.querySelector(".metrics, .cards");
+        if (!summaryRoot) {
+          const retryCount = Number(iframe.dataset.overviewRetryCount || "0");
+          if (retryCount < 12) {
+            iframe.dataset.overviewRetryCount = String(retryCount + 1);
+            window.setTimeout(() => applyOverviewSummaryToIframe(iframe), 260);
+          }
+          return;
+        }
+        if (summaryRoot && summaryRoot.parentElement) {
+          Array.from(summaryRoot.parentElement.children).forEach((child) => {
+            if (child !== summaryRoot) {
+              child.style.display = "none";
+            }
+          });
+        }
+        const summaryItems = Array.from(summaryRoot?.children || []).filter((item) => {
+          if (!(item instanceof HTMLElement)) {
+            return false;
+          }
+          return item.matches(".metric, .card");
+        });
+        const getLabelElement = (item) => item.querySelector(".metric-label, .label");
+        const normalizeLabel = (text) => String(text || "").replace(/\s+/g, "").trim();
+        const findSummaryItem = (matcher) =>
+          summaryItems.find((item) => matcher(normalizeLabel(getLabelElement(item)?.textContent || ""), item)) || null;
+        const primaryDateItem = summaryItems.find((item) => {
+          const labelText = normalizeLabel(getLabelElement(item)?.textContent || "");
+          return labelText.includes("最新日期");
+        });
+        const fallbackDateItem = summaryItems.find((item) => {
+          const labelText = normalizeLabel(getLabelElement(item)?.textContent || "");
+          return labelText.includes("匹配日期");
+        });
+        const overviewDateItem = primaryDateItem || fallbackDateItem || null;
+        if (overviewDateItem) {
+          const labelElement = getLabelElement(overviewDateItem);
+          if (labelElement) {
+            labelElement.textContent = "最新日期";
+          }
+        }
+        summaryItems.forEach((item) => {
+          const labelElement = getLabelElement(item);
+          const labelText = normalizeLabel(labelElement?.textContent || "");
+          const shouldRemove =
+            labelText.includes("1个月前") ||
+            labelText.includes("1年前") ||
+            labelText.includes("历史区间") ||
+            labelText.includes("信号/基准窗口") ||
+            labelText.includes("近距低位") ||
+            labelText.includes("近距区间") ||
+            labelText.includes("样本行数") ||
+            (labelText.includes("匹配日期") && item !== overviewDateItem);
+          item.style.display = shouldRemove ? "none" : "";
+        });
+        const nestedSummaryItems = Array.from(
+          summaryRoot?.querySelectorAll(".metric-inline-item, .metric-combo-item") || []
+        ).filter((item) => item instanceof HTMLElement);
+        nestedSummaryItems.forEach((item) => {
+          const labelElement = item.querySelector(
+            ".metric-inline-label, .metric-combo-label, .metric-label, .label"
+          );
+          const labelText = normalizeLabel(labelElement?.textContent || "");
+          const shouldRemove =
+            labelText.includes("1个月前") ||
+            labelText.includes("1年前") ||
+            labelText.includes("历史区间") ||
+            labelText.includes("信号/基准窗口") ||
+            labelText.includes("近距低位") ||
+            labelText.includes("近距区间") ||
+            labelText.includes("样本行数") ||
+            labelText.includes("匹配日期");
+          item.style.display = shouldRemove ? "none" : "";
+        });
+        if (overviewDateItem && overviewTitle.includes("VIX&VXN&Fear")) {
+          const latestVixItem = findSummaryItem((labelText, item) =>
+            item !== overviewDateItem && item.style.display !== "none" && labelText.includes("最新vix")
+          );
+          if (latestVixItem && summaryRoot.firstElementChild !== latestVixItem) {
+            summaryRoot.insertBefore(latestVixItem, summaryRoot.firstElementChild);
+          }
+          if (latestVixItem && latestVixItem.nextElementSibling !== overviewDateItem) {
+            latestVixItem.insertAdjacentElement("afterend", overviewDateItem);
+          }
+        }
+        if (overviewDateItem && overviewTitle.includes("巴菲特指数")) {
+          const latestBuffettItem = findSummaryItem((labelText, item) =>
+            item !== overviewDateItem && item.style.display !== "none" && labelText.includes("buffettindicator")
+          );
+          if (latestBuffettItem && summaryRoot.firstElementChild !== latestBuffettItem) {
+            summaryRoot.insertBefore(latestBuffettItem, summaryRoot.firstElementChild);
+          }
+          if (latestBuffettItem && latestBuffettItem.nextElementSibling !== overviewDateItem) {
+            latestBuffettItem.insertAdjacentElement("afterend", overviewDateItem);
+          }
+        }
+        if (overviewTitle.includes("QQQ市场宽度")) {
+          const maOverviewCard = summaryItems.find((item) => {
+            const labelText = normalizeLabel(getLabelElement(item)?.textContent || "");
+            return labelText.includes("ma5/ma10/ma20/ma50/ma120");
+          });
+          const latestCard = summaryItems.find((item) => {
+            const labelText = normalizeLabel(getLabelElement(item)?.textContent || "");
+            return labelText.includes("最新日期");
+          });
+          const maOverviewLabel = maOverviewCard ? getLabelElement(maOverviewCard) : null;
+          if (maOverviewLabel) {
+            maOverviewLabel.style.display = "none";
+          }
+          const ma120Item = maOverviewCard?.querySelector(".metric-combo-item.ma-accent-ma120");
+          if (ma120Item && latestCard && !latestCard.querySelector(".overview-ma120-card")) {
+            const clone = ma120Item.cloneNode(true);
+            if (clone instanceof HTMLElement) {
+              clone.classList.add("overview-ma120-card");
+              latestCard.appendChild(clone);
+            }
+            if (ma120Item instanceof HTMLElement) {
+              ma120Item.style.display = "none";
+            }
+          }
+        }
+        summaryItems.forEach((item) => {
+          const labelElement = getLabelElement(item);
+          const valueElement = item.querySelector(".metric-value, .value, .metric-inline-value, .metric-combo-value, .metric-main-value");
+          const labelText = normalizeLabel(labelElement?.textContent || "");
+          if (!valueElement) {
+            return;
+          }
+          if (
+            labelText.includes("当前状态") ||
+            labelText.includes("当前情绪") ||
+            labelText.includes("最新状态") ||
+            labelText.includes("buffettindicator")
+          ) {
+            valueElement.style.color = "#f59e0b";
+          } else if (
+            labelText.includes("最新vix") ||
+            labelText.includes("最新vxn") ||
+            labelText.includes("最新指数") ||
+            labelText.includes("最新naaim") ||
+            labelText.includes("最新qqq") ||
+            labelText.includes("最新spy") ||
+            labelText.includes("最新纳指100")
+          ) {
+            valueElement.style.color = "#60a5fa";
+          } else if (
+            labelText.includes("最新市值gdp比") ||
+            labelText.includes("buffettindicator")
+          ) {
+            valueElement.style.color = "#f87171";
+          }
+        });
+        const visibleSummaryItems = summaryItems.filter((item) => item.style.display !== "none");
+        const visibleDateItem = visibleSummaryItems.find((item) => item === overviewDateItem) || null;
+        const shouldPinDateFirst = !(
+          overviewTitle.includes("VIX&VXN&Fear") ||
+          overviewTitle.includes("NAAIM仓位") ||
+          overviewTitle.includes("巴菲特指数")
+        );
+        if (shouldPinDateFirst) {
+          if (visibleDateItem && summaryRoot.firstElementChild !== visibleDateItem) {
+            summaryRoot.insertBefore(visibleDateItem, summaryRoot.firstElementChild);
+          } else if (!visibleDateItem && overviewDateItem) {
+            overviewDateItem.style.display = "";
+            summaryRoot.insertBefore(overviewDateItem, summaryRoot.firstElementChild);
+          }
+        }
+        const summaryHeight = Math.max(
+          summaryRoot?.scrollHeight || 0,
+          doc.body?.scrollHeight || 0,
+          doc.documentElement?.scrollHeight || 0,
+          120,
+        );
+        iframe.style.height = `${Math.min(summaryHeight + 12, 360)}px`;
+        window.setTimeout(() => {
+          try {
+            const nextHeight = Math.max(
+              summaryRoot?.scrollHeight || 0,
+              doc.body?.scrollHeight || 0,
+              doc.documentElement?.scrollHeight || 0,
+              120,
+            );
+            iframe.style.height = `${Math.min(nextHeight + 12, 360)}px`;
+          } catch (_error) {}
+        }, 240);
+      } catch (_error) {}
+    }
+
+    function applyColumnLayout() {
+      if (!showColumnControls) {
+        return;
+      }
+      updateColumnValueText();
+      previewIframes.forEach((iframe) => applyColumnLayoutToIframe(iframe));
+      try {
+        localStorage.setItem(
+          columnStorageKey,
+          JSON.stringify({
+            width: columnWidthRange?.value || "84",
+            gap: columnGapRange?.value || "0",
+            nameSize: nameFontSizeRange?.value || "14",
+          })
+        );
+      } catch (_error) {}
+    }
+
+    function restoreColumnLayout() {
+      if (!showColumnControls) {
+        return;
+      }
+      try {
+        const raw = localStorage.getItem(columnStorageKey);
+        if (!raw) {
+          updateColumnValueText();
+          return;
+        }
+        const saved = JSON.parse(raw);
+        if (columnWidthRange && saved?.width) {
+          columnWidthRange.value = String(saved.width);
+        }
+        if (columnGapRange && saved?.gap) {
+          columnGapRange.value = String(saved.gap);
+        }
+        if (nameFontSizeRange && saved?.nameSize) {
+          nameFontSizeRange.value = String(saved.nameSize);
+        }
+      } catch (_error) {}
+      updateColumnValueText();
+    }
+
+    previewIframes.forEach((iframe) => {
+      const applyPreviewEnhancements = () => {
+        applyColumnLayoutToIframe(iframe);
+        applyOverviewSummaryToIframe(iframe);
+      };
+      iframe.addEventListener("load", applyPreviewEnhancements);
+      applyPreviewEnhancements();
+      window.setTimeout(applyPreviewEnhancements, 120);
+      window.setTimeout(applyPreviewEnhancements, 480);
+    });
+
+    const overviewPeriodButtons = Array.from(document.querySelectorAll('.overview-period-btn[data-overview-period]'));
+    function applyOverviewPeriod(periodKey) {
+      overviewPeriodButtons.forEach((button) => {
+        button.classList.toggle('active', button.dataset.overviewPeriod === periodKey);
+      });
+      previewIframes.forEach((iframe) => {
+        if (!iframe.closest('.overview-summary')) {
+          return;
+        }
+        try {
+          const doc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (!doc) {
+            return;
+          }
+          doc.querySelectorAll('.metric-period-card').forEach((card) => {
+            const raw = card.getAttribute('data-period-values') || '{}';
+            const values = JSON.parse(raw);
+            const valueNode = card.querySelector('.metric-period-value');
+            if (valueNode) {
+              valueNode.textContent = values[periodKey] || '-';
+            }
+          });
+        } catch (_error) {}
+      });
+    }
+    overviewPeriodButtons.forEach((button) => {
+      button.addEventListener('click', () => applyOverviewPeriod(button.dataset.overviewPeriod || '3y'));
+    });
+    if (overviewPeriodButtons.length) {
+      applyOverviewPeriod('3y');
+    }
+
+    if (isTradeRecordPreview) {
+      const outerViewButtons = Array.from(document.querySelectorAll(".outer-view-btn"));
+      function applyTradeRecordView(viewKey) {
+        outerViewButtons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.view === viewKey);
+        });
+        previewIframes.forEach((iframe) => {
+          try {
+            const targetWindow = iframe.contentWindow;
+            if (targetWindow && typeof targetWindow.setTradeRecordView === "function") {
+              targetWindow.setTradeRecordView(viewKey);
+            }
+          } catch (_error) {}
+        });
+      }
+      outerViewButtons.forEach((button) => {
+        button.addEventListener("click", () => applyTradeRecordView(button.dataset.view));
+      });
+      previewIframes.forEach((iframe) => {
+        iframe.addEventListener("load", () => {
+          const activeButton = outerViewButtons.find((button) => button.classList.contains("active"));
+          applyTradeRecordView(activeButton?.dataset.view || "record");
+        });
+      });
+    }
+
+    if (useSwitchTabs) {
+      const buttons = Array.from(document.querySelectorAll(".switch-row .switch-btn[data-panel]"));
+      const panels = Array.from(document.querySelectorAll(".page-card"));
+      function setActivePanel(panelId) {
+        if (!panelId) {
+          return;
+        }
+        buttons.forEach((button) => {
+          button.classList.toggle("active", button.dataset.panel === panelId);
+        });
+        panels.forEach((panel) => {
+          panel.classList.toggle("active", panel.dataset.panel === panelId);
+        });
+      }
+      buttons.forEach((button) => {
+        button.addEventListener("click", () => setActivePanel(button.dataset.panel));
+      });
+      if (buttons.length) {
+        setActivePanel(defaultPanelId || buttons[0].dataset.panel);
+      }
+    }
+    if (showColumnControls) {
+      columnWidthRange?.addEventListener("input", applyColumnLayout);
+      columnGapRange?.addEventListener("input", applyColumnLayout);
+      nameFontSizeRange?.addEventListener("input", applyColumnLayout);
+      resetColumnLayout?.addEventListener("click", () => {
+        if (columnWidthRange) {
+            columnWidthRange.value = "84";
+        }
+        if (columnGapRange) {
+          columnGapRange.value = "0";
+        }
+        if (nameFontSizeRange) {
+          nameFontSizeRange.value = "14";
+        }
+        applyColumnLayout();
+      });
+      restoreColumnLayout();
+      applyColumnLayout();
+    }
+  
+  </script>
+</body>
+</html>
