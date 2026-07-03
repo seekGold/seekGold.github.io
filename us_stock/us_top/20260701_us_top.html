@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>美股每日成交TOP25</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 18px;
+      background: #0f172a;
+      color: #e5e7eb;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+    }
+    .page { width: fit-content; max-width: calc(100vw - 36px); min-width: min(1180px, calc(100vw - 36px)); margin: 0 auto; display: grid; gap: 16px; }
+    .hero, .card {
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      box-shadow: 0 14px 38px rgba(15, 23, 42, 0.30);
+    }
+    .hero { padding: 18px 20px; }
+    h1 { margin: 0; font-size: 26px; }
+    .subtitle { margin-top: 8px; color: #94a3b8; font-size: 14px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 14px; }
+    select, input, button {
+      border: 1px solid #334155;
+      background: #17202f;
+      color: #e5e7eb;
+      border-radius: 10px;
+      padding: 9px 12px;
+      font-weight: 700;
+    }
+    button { cursor: pointer; }
+    button.active { color: #bfdbfe; border-color: rgba(96, 165, 250, 0.55); background: rgba(59, 130, 246, 0.18); }
+    .stats-range-panel {
+      display: none;
+      gap: 8px;
+      align-items: center;
+      padding: 0 14px 12px;
+      border-top: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .stats-range-panel.active { display: flex; }
+    .stats-range-label { color: #94a3b8; font-size: 13px; font-weight: 800; }
+    .summary { margin-left: auto; color: #94a3b8; font-size: 13px; font-weight: 700; }
+    .table-wrap { position: relative; overflow: auto; max-height: max(520px, calc(100vh - 210px)); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: #111827; box-shadow: 0 18px 45px rgba(15, 23, 42, 0.26); }
+    table { width: max-content; min-width: 100%; margin: 0 auto; border-collapse: separate; border-spacing: 0; isolation: isolate; }
+    thead { position: sticky; top: 0; z-index: 20; }
+    th {
+      position: sticky;
+      top: 0;
+      background: #17202f;
+      color: #e5e7eb;
+      z-index: 21;
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      white-space: nowrap;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      font-size: 14px;
+      font-weight: 700;
+      background-clip: padding-box;
+      box-shadow: 0 1px 0 #334155, 0 8px 14px rgba(15, 23, 42, 0.52);
+    }
+    td {
+      position: relative;
+      padding: 11px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #e5e7eb;
+      font-size: 14px;
+      white-space: nowrap;
+      text-align: center;
+      vertical-align: middle;
+      font-weight: 400;
+    }
+    tbody tr:nth-child(odd) td { background: rgba(148, 163, 184, 0.035); }
+    tbody tr:hover td { background: rgba(96, 165, 250, 0.08); }
+    .name-cell { color: #c084fc; font-weight: 800; }
+    .rank-cell { color: #fde68a; font-weight: 900; }
+    .positive, .negative { color: #f8fafc; font-weight: 400; }
+    .bar-cell { min-width: 132px; }
+    .bar-track {
+      position: relative;
+      width: min(100%, 132px);
+      min-width: 112px;
+      height: 22px;
+      margin: 0 auto;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(148, 163, 184, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10);
+    }
+    .bar-fill { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; }
+    .bar-value { position: absolute; inset: 0 10px; display: flex; align-items: center; justify-content: flex-end; z-index: 1; color: #e5e7eb; font-weight: 700; letter-spacing: 0.1px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <h1>美股每日成交TOP25</h1>
+      <div class="subtitle">数据来自 <code>美股每日成交TOP25.csv</code>，生成时间：2026-07-02 10:24:03</div>
+    </section>
+    <section class="card">
+      <div class="toolbar">
+        <button id="dailyBtn" class="active" type="button">每日TOP25</button>
+        <button id="statsBtn" type="button" style="display:none" disabled>历史统计</button>
+        <select id="dateSelect"></select>
+        <input id="searchInput" type="search" placeholder="搜索代码/名称/任意列" />
+        <button id="clearSearch" type="button">清空</button>
+        <div id="summary" class="summary"></div>
+      </div>
+      <div id="statsRangePanel" class="stats-range-panel" style="display:none">
+        <span class="stats-range-label">历史统计范围</span>
+        <button class="range-btn" data-range="5" type="button">近5天</button>
+        <button class="range-btn" data-range="10" type="button">近10天</button>
+        <button class="range-btn" data-range="20" type="button">近20天</button>
+        <button class="range-btn active" data-range="all" type="button">全部</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead id="tableHead"></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script>
+    const payload = {"generatedAt": "2026-07-02 10:24:03", "dates": ["2026-07-01"], "columns": ["日期", "排名", "代码", "名称", "成交额", "最新价", "今日涨幅", "本周涨幅", "本月涨幅", "今年涨幅", "市值", "相对52周最高", "市盈率TTM", "近3月涨幅", "近1年涨幅", "距离最高天数", "52周最高日期", "最高价", "年初"], "rows": [{"日期": "2026-07-01", "排名": 1, "代码": "MU", "名称": "美光", "成交额": "542.06", "最新价": "1032.28", "今日涨幅": "-10.57%", "本周涨幅": "1.94%", "本月涨幅": "18.88%", "今年涨幅": "261.68%", "市值": "1.17", "相对52周最高": "-17.75%", "市盈率TTM": "23.37", "近3月涨幅": "223.13%", "近1年涨幅": "825.21%", "距离最高天数": "5", "52周最高日期": "2026-06-25", "最高价": "", "年初": "285.41"}, {"日期": "2026-07-01", "排名": 2, "代码": "SPY", "名称": "标普500", "成交额": "351.64", "最新价": "745.76", "今日涨幅": "-0.14%", "本周涨幅": "2.44%", "本月涨幅": "-1.28%", "今年涨幅": "9.51%", "市值": "", "相对52周最高": "-1.67%", "市盈率TTM": "", "近3月涨幅": "17.77%", "近1年涨幅": "21.44%", "距离最高天数": "28", "52周最高日期": "2026-06-02", "最高价": "", "年初": "681.92"}, {"日期": "2026-07-01", "排名": 3, "代码": "QQQ", "名称": "纳指100", "成交额": "297.08", "最新价": "725.17", "今日涨幅": "-1.52%", "本周涨幅": "4.23%", "本月涨幅": "-0.26%", "今年涨幅": "18.05%", "市值": "", "相对52周最高": "-3.03%", "市盈率TTM": "", "近3月涨幅": "30.9%", "近1年涨幅": "34.36%", "距离最高天数": "27", "52周最高日期": "2026-06-03", "最高价": "", "年初": "614.31"}, {"日期": "2026-07-01", "排名": 4, "代码": "NVDA", "名称": "英伟达", "成交额": "287.95", "最新价": "197.58", "今日涨幅": "-1.25%", "本周涨幅": "3.93%", "本月涨幅": "-5.23%", "今年涨幅": "5.94%", "市值": "4.79", "相对52周最高": "-16.37%", "市盈率TTM": "30.26", "近3月涨幅": "19.44%", "近1年涨幅": "26.84%", "距离最高天数": "47", "52周最高日期": "2026-05-14", "最高价": "", "年初": "186.5"}, {"日期": "2026-07-01", "排名": 5, "代码": "META", "名称": "Meta", "成交额": "280.11", "最新价": "612.91", "今日涨幅": "8.81%", "本周涨幅": "2.37%", "本月涨幅": "-10.94%", "今年涨幅": "-7.15%", "市值": "1.56", "相对52周最高": "-22.77%", "市盈率TTM": "22.29", "近3月涨幅": "7.15%", "近1年涨幅": "-23.22%", "距离最高天数": "319", "52周最高日期": "2025-08-15", "最高价": "", "年初": "660.09"}, {"日期": "2026-07-01", "排名": 6, "代码": "SNDK", "名称": "闪迪", "成交额": "226.97", "最新价": "2032.22", "今日涨幅": "-10.62%", "本周涨幅": "8.75%", "本月涨幅": "34.14%", "今年涨幅": "756.1%", "市值": "0.3", "相对52周最高": "-13.68%", "市盈率TTM": "69.45", "近3月涨幅": "269.21%", "近1年涨幅": "4722.33%", "距离最高天数": "8", "52周最高日期": "2026-06-22", "最高价": "", "年初": "237.38"}, {"日期": "2026-07-01", "排名": 7, "代码": "MSFT", "名称": "微软", "成交额": "184.65", "最新价": "384.28", "今日涨幅": "3.02%", "本周涨幅": "0.01%", "本月涨幅": "-17.15%", "今年涨幅": "-20.54%", "市值": "2.85", "相对52周最高": "-30.26%", "市盈率TTM": "22.89", "近3月涨幅": "4.55%", "近1年涨幅": "-24.79%", "距离最高天数": "334", "52周最高日期": "2025-07-31", "最高价": "", "年初": "483.62"}, {"日期": "2026-07-01", "排名": 8, "代码": "SPCX", "名称": "SpaceX", "成交额": "175.37", "最新价": "157.54", "今日涨幅": "-7.8%", "本周涨幅": "11.51%", "本月涨幅": "6.16%", "今年涨幅": "-2.12%", "市值": "2.08", "相对52周最高": "-30.18%", "市盈率TTM": "-234.33", "近3月涨幅": "6.16%", "近1年涨幅": "6.16%", "距离最高天数": "14", "52周最高日期": "2026-06-16", "最高价": "", "年初": "160.95"}, {"日期": "2026-07-01", "排名": 9, "代码": "TSLA", "名称": "特斯拉", "成交额": "171.07", "最新价": "425.30", "今日涨幅": "1.12%", "本周涨幅": "10.77%", "本月涨幅": "-3.49%", "今年涨幅": "-5.43%", "市值": "1.6", "相对52周最高": "-14.74%", "市盈率TTM": "390.18", "近3月涨幅": "16.24%", "近1年涨幅": "29.96%", "距离最高天数": "190", "52周最高日期": "2025-12-22", "最高价": "", "年初": "449.72"}, {"日期": "2026-07-01", "排名": 10, "代码": "AMD", "名称": "AMD", "成交额": "155.63", "最新价": "540.88", "今日涨幅": "-6.89%", "本周涨幅": "11.38%", "本月涨幅": "12.56%", "今年涨幅": "152.56%", "市值": "0.88", "相对52周最高": "-7.5%", "市盈率TTM": "177.34", "近3月涨幅": "187.59%", "近1年涨幅": "303.94%", "距离最高天数": "0", "52周最高日期": "2026-06-30", "最高价": "", "年初": "214.16"}, {"日期": "2026-07-01", "排名": 11, "代码": "AAPL", "名称": "苹果", "成交额": "147.52", "最新价": "294.38", "今日涨幅": "1.73%", "本周涨幅": "1.97%", "本月涨幅": "-7.27%", "今年涨幅": "8.28%", "市值": "4.32", "相对52周最高": "-7.25%", "市盈率TTM": "35.64", "近3月涨幅": "16.3%", "近1年涨幅": "43.9%", "距离最高天数": "22", "52周最高日期": "2026-06-08", "最高价": "", "年初": "271.86"}, {"日期": "2026-07-01", "排名": 12, "代码": "INTC", "名称": "英特尔", "成交额": "146.64", "最新价": "127.02", "今日涨幅": "-9.03%", "本周涨幅": "8.81%", "本月涨幅": "21.76%", "今年涨幅": "244.23%", "市值": "0.64", "相对52周最高": "-10.77%", "市盈率TTM": "-211.70", "近3月涨幅": "223.74%", "近1年涨幅": "515.38%", "距离最高天数": "0", "52周最高日期": "2026-06-30", "最高价": "", "年初": "36.9"}, {"日期": "2026-07-01", "排名": 13, "代码": "SOXL", "名称": "半导体3倍做多", "成交额": "137.29", "最新价": "217.55", "今日涨幅": "-18.43%", "本周涨幅": "23.71%", "本月涨幅": "18.89%", "今年涨幅": "417.61%", "市值": "", "相对52周最高": "-27.96%", "市盈率TTM": "", "近3月涨幅": "472.22%", "近1年涨幅": "962.17%", "距离最高天数": "8", "52周最高日期": "2026-06-22", "最高价": "", "年初": "42.03"}, {"日期": "2026-07-01", "排名": 14, "代码": "AMZN", "名称": "亚马逊", "成交额": "130.1", "最新价": "241.70", "今日涨幅": "1.41%", "本周涨幅": "2.43%", "本月涨幅": "-11.93%", "今年涨幅": "4.71%", "市值": "2.6", "相对52周最高": "-13.23%", "市盈率TTM": "28.91", "近3月涨幅": "19.56%", "近1年涨幅": "6.74%", "距离最高天数": "56", "52周最高日期": "2026-05-05", "最高价": "", "年初": "230.82"}, {"日期": "2026-07-01", "排名": 15, "代码": "AMAT", "名称": "应用材料", "成交额": "106.16", "最新价": "650.91", "今日涨幅": "-9.97%", "本周涨幅": "15.34%", "本月涨幅": "60.65%", "今年涨幅": "153.28%", "市值": "0.52", "相对52周最高": "-12.0%", "市盈率TTM": "61.23", "近3月涨幅": "114.43%", "近1年涨幅": "294.63%", "距离最高天数": "0", "52周最高日期": "2026-06-30", "最高价": "", "年初": "256.99"}, {"日期": "2026-07-01", "排名": 16, "代码": "GOOGL", "名称": "谷歌A", "成交额": "96.29", "最新价": "361.21", "今日涨幅": "1.07%", "本周涨幅": "5.92%", "本月涨幅": "-6.04%", "今年涨幅": "15.4%", "市值": "4.41", "相对52周最高": "-11.55%", "市盈率TTM": "27.55", "近3月涨幅": "30.27%", "近1年涨幅": "100.17%", "距离最高天数": "43", "52周最高日期": "2026-05-18", "最高价": "", "年初": "313.0"}, {"日期": "2026-07-01", "排名": 17, "代码": "MRVL", "名称": "迈威尔", "成交额": "94.04", "最新价": "272.05", "今日涨幅": "-8.67%", "本周涨幅": "11.67%", "本月涨幅": "45.31%", "今年涨幅": "220.13%", "市值": "0.24", "相对52周最高": "-17.53%", "市盈率TTM": "93.49", "近3月涨幅": "213.97%", "近1年涨幅": "286.07%", "距离最高天数": "12", "52周最高日期": "2026-06-18", "最高价": "", "年初": "84.98"}, {"日期": "2026-07-01", "排名": 18, "代码": "AVGO", "名称": "博通", "成交额": "87.78", "最新价": "369.34", "今日涨幅": "-2.23%", "本周涨幅": "3.49%", "本月涨幅": "-15.45%", "今年涨幅": "6.71%", "市值": "1.76", "相对52周最高": "-25.27%", "市盈率TTM": "61.45", "近3月涨幅": "25.63%", "近1年涨幅": "40.25%", "距离最高天数": "27", "52周最高日期": "2026-06-03", "最高价": "", "年初": "346.1"}, {"日期": "2026-07-01", "排名": 19, "代码": "SMH", "名称": "半导体ETF", "成交额": "84.24", "最新价": "620.46", "今日涨幅": "-5.4%", "本周涨幅": "7.24%", "本月涨幅": "9.51%", "今年涨幅": "72.29%", "市值": "", "相对52周最高": "-7.65%", "市盈率TTM": "", "近3月涨幅": "75.25%", "近1年涨幅": "135.58%", "距离最高天数": "8", "52周最高日期": "2026-06-22", "最高价": "", "年初": "360.13"}, {"日期": "2026-07-01", "排名": 20, "代码": "TSM", "名称": "台积电", "成交额": "83.55", "最新价": "444.23", "今日涨幅": "-6.98%", "本周涨幅": "10.46%", "本月涨幅": "14.13%", "今年涨幅": "46.18%", "市值": "2.3", "相对52周最高": "-7.26%", "市盈率TTM": "38.60", "近3月涨幅": "46.16%", "近1年涨幅": "108.94%", "距离最高天数": "0", "52周最高日期": "2026-06-30", "最高价": "", "年初": "303.89"}, {"日期": "2026-07-01", "排名": 21, "代码": "PLTR", "名称": "Palantir", "成交额": "73.68", "最新价": "125.73", "今日涨幅": "7.77%", "本周涨幅": "3.31%", "本月涨幅": "-25.47%", "今年涨幅": "-29.27%", "市值": "0.3", "相对52周最高": "-39.41%", "市盈率TTM": "141.27", "近3月涨幅": "-18.45%", "近1年涨幅": "-10.76%", "距离最高天数": "239", "52周最高日期": "2025-11-03", "最高价": "", "年初": "177.75"}, {"日期": "2026-07-01", "排名": 22, "代码": "LRCX", "名称": "泛林集团", "成交额": "73.44", "最新价": "391.26", "今日涨幅": "-9.71%", "本周涨幅": "14.31%", "本月涨幅": "36.19%", "今年涨幅": "128.57%", "市值": "0.49", "相对52周最高": "-10.77%", "市盈率TTM": "73.96", "近3月涨幅": "104.97%", "近1年涨幅": "345.81%", "距离最高天数": "0", "52周最高日期": "2026-06-30", "最高价": "", "年初": "171.18"}, {"日期": "2026-07-01", "排名": 23, "代码": "NBIS", "名称": "Nebius", "成交额": "72.55", "最新价": "229.18", "今日涨幅": "-17.01%", "本周涨幅": "14.93%", "本月涨幅": "19.51%", "今年涨幅": "173.78%", "市值": "0.06", "相对52周最高": "-23.57%", "市盈率TTM": "78.49", "近3月涨幅": "173.92%", "近1年涨幅": "432.74%", "距离最高天数": "8", "52周最高日期": "2026-06-22", "最高价": "", "年初": "83.71"}, {"日期": "2026-07-01", "排名": 24, "代码": "GOOG", "名称": "谷歌", "成交额": "69.76", "最新价": "357.89", "今日涨幅": "1.29%", "本周涨幅": "5.57%", "本月涨幅": "-6.14%", "今年涨幅": "14.05%", "市值": "4.37", "相对52周最高": "-11.46%", "市盈率TTM": "27.30", "近3月涨幅": "29.07%", "近1年涨幅": "98.2%", "距离最高天数": "43", "52周最高日期": "2026-05-18", "最高价": "", "年初": "313.8"}, {"日期": "2026-07-01", "排名": 25, "代码": "ORCL", "名称": "甲骨文", "成交额": "66.39", "最新价": "142.50", "今日涨幅": "-2.76%", "本周涨幅": "-1.33%", "本月涨幅": "-35.09%", "今年涨幅": "-26.89%", "市值": "0.41", "相对52周最高": "-58.46%", "市盈率TTM": "24.44", "近3月涨幅": "4.93%", "近1年涨幅": "-30.29%", "距离最高天数": "293", "52周最高日期": "2025-09-10", "最高价": "", "年初": "194.91"}]};
+    let mode = 'daily';
+    let statsRange = 'all';
+    let sortKey = '';
+    let sortDesc = false;
+    const dateSelect = document.getElementById('dateSelect');
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const dailyBtn = document.getElementById('dailyBtn');
+    const statsBtn = document.getElementById('statsBtn');
+    const statsRangePanel = document.getElementById('statsRangePanel');
+    const tableHead = document.getElementById('tableHead');
+    const tableBody = document.getElementById('tableBody');
+    const summary = document.getElementById('summary');
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function parseNumber(value) {
+      const normalized = String(value ?? '').replace('%', '').replace(',', '').trim();
+      const num = Number(normalized);
+      return Number.isFinite(num) ? num : null;
+    }
+    function valueClass(column, value) {
+      if (!String(column).includes('涨幅') && !String(column).includes('回撤')) return '';
+      const num = parseNumber(value);
+      if (!Number.isFinite(num) || num === 0) return '';
+      return num > 0 ? 'positive' : 'negative';
+    }
+    function isBarColumn(column) {
+      const columnText = String(column);
+      return columnText.includes('涨幅') || columnText.includes('回撤') || columnText === '相对52周最高' || columnText === '平均成交额' || columnText === '最高成交额' || columnText === '最新成交额';
+    }
+    function compareValues(left, right, key) {
+      const leftNum = parseNumber(left[key]);
+      const rightNum = parseNumber(right[key]);
+      if (leftNum !== null && rightNum !== null) return leftNum - rightNum;
+      return String(left[key] ?? '').localeCompare(String(right[key] ?? ''), 'zh-Hans-CN');
+    }
+    function applySort(rows) {
+      if (!sortKey) return rows.slice();
+      return rows.slice().sort((left, right) => {
+        const result = compareValues(left, right, sortKey);
+        return sortDesc ? -result : result;
+      });
+    }
+    function renderHead(columns) {
+      tableHead.innerHTML = '<tr>' + columns.map((column) => {
+        const indicator = sortKey === column ? (sortDesc ? ' ▼' : ' ▲') : ' ↕';
+        return `<th data-key="${escapeHtml(column)}">${escapeHtml(column)}<span>${indicator}</span></th>`;
+      }).join('') + '</tr>';
+      tableHead.querySelectorAll('th[data-key]').forEach((th) => {
+        th.addEventListener('click', () => {
+          const key = th.dataset.key || '';
+          if (sortKey === key) sortDesc = !sortDesc;
+          else { sortKey = key; sortDesc = key === '成交额' || key.includes('次数') || key.includes('排名'); }
+          render();
+        });
+      });
+    }
+    function renderRows(columns, rows) {
+      const search = searchInput.value.trim().toLowerCase();
+      let filtered = rows.filter((row) => !search || columns.some((column) => String(row[column] ?? '').toLowerCase().includes(search)));
+      filtered = applySort(filtered);
+      const maxAbsByColumn = Object.fromEntries(columns.map((column) => {
+        if (!isBarColumn(column)) return [column, 0];
+        const maxAbs = Math.max(...filtered.map((row) => Math.abs(parseNumber(row[column]) ?? 0)), 0);
+        return [column, maxAbs || 1];
+      }));
+      tableBody.innerHTML = filtered.map((row) => {
+        return '<tr>' + columns.map((column) => {
+          const classNames = [];
+          if (column === '排名' || column === '最近排名' || column === '最佳排名') classNames.push('rank-cell');
+          if (column === '名称') classNames.push('name-cell');
+          const tone = valueClass(column, row[column]);
+          if (tone) classNames.push(tone);
+          if (isBarColumn(column)) classNames.push('bar-cell');
+          const classAttr = classNames.length ? ` class="${classNames.join(' ')}"` : '';
+          if (isBarColumn(column)) {
+            const num = parseNumber(row[column]) ?? 0;
+            const width = Math.max(8, Math.min(100, Math.abs(num) / maxAbsByColumn[column] * 100));
+            const isPositive = num >= 0;
+            const trackColor = isPositive ? '23, 37, 34' : '60, 22, 28';
+            const fillColor = isPositive ? '54, 179, 126' : '235, 83, 83';
+            const gradientColor = isPositive ? 'rgba(54, 179, 126, 0.96)' : 'rgba(235, 83, 83, 0.96)';
+            const gradientTail = isPositive ? 'rgba(73, 201, 146, 0.82)' : 'rgba(244, 114, 114, 0.82)';
+            const trackStyle = `background: rgba(${trackColor}, 0.65);`;
+            const fillStyle = `width:${width}%; background:linear-gradient(90deg, ${gradientColor} 0%, ${gradientTail} 100%); box-shadow:inset 0 0 0 1px rgba(${fillColor}, 0.82)`;
+            return `<td${classAttr}><div class="bar-track" style="${trackStyle}"><span class="bar-fill" style="${fillStyle}"></span><span class="bar-value">${escapeHtml(row[column] ?? '')}</span></div></td>`;
+          }
+          return `<td${classAttr}>${escapeHtml(row[column] ?? '')}</td>`;
+        }).join('') + '</tr>';
+      }).join('');
+      summary.textContent = `${filtered.length} / ${rows.length} 行`;
+    }
+    function buildStatsRows() {
+      const selectedDates = statsRange === 'all' ? payload.dates : payload.dates.slice(0, Number(statsRange));
+      const selectedDateSet = new Set(selectedDates);
+      const groups = new Map();
+      payload.rows.forEach((row) => {
+        if (!selectedDateSet.has(row['日期'])) return;
+        const key = String(row['代码'] || row['名称'] || '').trim().toUpperCase();
+        if (!key) return;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(row);
+      });
+      const stats = [];
+      groups.forEach((items) => {
+        const latest = items.slice().sort((a, b) => String(b['日期']).localeCompare(String(a['日期'])) || Number(a['排名'] || 9999) - Number(b['排名'] || 9999))[0];
+        const best = items.slice().sort((a, b) => Number(a['排名'] || 9999) - Number(b['排名'] || 9999) || (parseNumber(b['成交额']) ?? 0) - (parseNumber(a['成交额']) ?? 0))[0];
+        const maxAmount = items.slice().sort((a, b) => (parseNumber(b['成交额']) ?? 0) - (parseNumber(a['成交额']) ?? 0))[0];
+        const ranks = items.map((item) => Number(item['排名'] || 0)).filter(Number.isFinite);
+        const amounts = items.map((item) => parseNumber(item['成交额']) ?? 0).filter(Number.isFinite);
+        const avgRank = ranks.length ? (ranks.reduce((a, b) => a + b, 0) / ranks.length).toFixed(2) : '';
+        const avgAmount = amounts.length ? (amounts.reduce((a, b) => a + b, 0) / amounts.length).toFixed(2).replace(/\.00$/, '') : '';
+        stats.push({
+          '代码': latest['代码'] || '',
+          '名称': latest['名称'] || '',
+          '最新涨幅': latest['今日涨幅'] || '',
+          '最新成交额': latest['成交额'] || '',
+          '上榜次数': items.length,
+          '平均排名': avgRank,
+          '最佳排名': best['排名'] || '',
+          '最佳排名日期': best['日期'] || '',
+          '平均成交额': avgAmount,
+          '最高成交额': maxAmount['成交额'] || '',
+          '最高成交额日期': maxAmount['日期'] || '',
+          '最近上榜日期': latest['日期'] || '',
+          '最近排名': latest['排名'] || '',
+        });
+      });
+      return stats
+        .sort((a, b) => Number(b['上榜次数']) - Number(a['上榜次数']) || Number(a['平均排名'] || 9999) - Number(b['平均排名'] || 9999) || String(a['代码']).localeCompare(String(b['代码'])))
+        .map((row, index) => ({ '编号': index + 1, ...row }));
+    }
+    function render() {
+      const selectedDate = dateSelect.value;
+      if (mode === 'daily') {
+        dateSelect.classList.remove('hidden');
+        statsRangePanel.classList.remove('active');
+        const columns = payload.columns;
+        const rows = payload.rows.filter((row) => row['日期'] === selectedDate).sort((a, b) => Number(a['排名'] || 9999) - Number(b['排名'] || 9999));
+        if (!sortKey) { sortKey = '排名'; sortDesc = false; }
+        renderHead(columns);
+        renderRows(columns, rows);
+      } else {
+        dateSelect.classList.add('hidden');
+        statsRangePanel.classList.add('active');
+        const columns = ['编号', '代码', '名称', '最新涨幅', '最新成交额', '上榜次数', '平均排名', '最近排名', '最佳排名', '平均成交额', '最高成交额', '最佳排名日期', '最高成交额日期', '最近上榜日期'];
+        if (!sortKey || sortKey === '排名') { sortKey = '上榜次数'; sortDesc = true; }
+        renderHead(columns);
+        renderRows(columns, buildStatsRows());
+      }
+    }
+    payload.dates.forEach((date) => {
+      const option = document.createElement('option');
+      option.value = date;
+      option.textContent = date;
+      dateSelect.appendChild(option);
+    });
+    dailyBtn.addEventListener('click', () => { mode = 'daily'; sortKey = '排名'; sortDesc = false; dailyBtn.classList.add('active'); statsBtn.classList.remove('active'); render(); });
+    statsBtn.addEventListener('click', () => { mode = 'stats'; sortKey = '上榜次数'; sortDesc = true; statsBtn.classList.add('active'); dailyBtn.classList.remove('active'); render(); });
+    document.querySelectorAll('.range-btn').forEach((button) => {
+      button.addEventListener('click', () => {
+        statsRange = button.dataset.range || 'all';
+        document.querySelectorAll('.range-btn').forEach((item) => item.classList.toggle('active', item === button));
+        render();
+      });
+    });
+    dateSelect.addEventListener('change', () => { sortKey = '排名'; sortDesc = false; render(); });
+    searchInput.addEventListener('input', render);
+    clearSearch.addEventListener('click', () => { searchInput.value = ''; render(); });
+    render();
+  </script>
+</body>
+</html>
